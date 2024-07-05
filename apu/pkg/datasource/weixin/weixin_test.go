@@ -5,8 +5,13 @@ import (
 	"testing"
 
 	"apu/pkg/datasource/weixin"
+	"apu/pkg/store/mysql"
 	"github.com/stretchr/testify/assert"
 )
+
+func init() {
+	mysql.Init()
+}
 
 func TestGetArticleStat(t *testing.T) {
 	biz := "MzkyMDA3MDcwMQ=="
@@ -23,8 +28,9 @@ func TestGetArticleStat(t *testing.T) {
 }
 
 func TestGetArticleStatByURL(t *testing.T) {
-	rawURL := "https://mp.weixin.qq.com/s/PBu0owoEaKDG3u8Yk6sgvA"
+	rawURL := "https://mp.weixin.qq.com/s/UQiQocQ2MWkwImZJFMMWQw"
 	stat, err := weixin.GetArticleStatByURL(rawURL)
 	assert.Nil(t, err)
 	assert.NotNil(t, stat)
+	fmt.Printf("%#v", stat)
 }

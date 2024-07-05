@@ -2,7 +2,6 @@ package article
 
 import (
 	"apu/internal/cookieutil"
-	"apu/pkg/store/mysql"
 	"apu/pkg/store/mysql/query"
 	"github.com/imroc/req/v3"
 )
@@ -13,10 +12,10 @@ func GetList(biz string) {
 
 // GetStat 获取文章统计信息。 https://www.cnblogs.com/jianpansangejian/p/17970546
 func GetStat(biz, mid, idx, sn string) (*Stat, error) {
-	mysql.Init()
-	header, err := query.WechatHeader.Where(
-		query.WechatHeader.Type.Eq("wechat"),
-		query.WechatHeader.Status.Eq("valid"),
+	//mysql.Init()
+	header, err := query.WechatCookie.Where(
+		query.WechatCookie.Type.Eq("wechat"),
+		query.WechatCookie.Status.Eq("valid"),
 	).First()
 	if err != nil {
 		return nil, err

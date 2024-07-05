@@ -2,6 +2,7 @@ package addon
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 
 	"apu/internal/cookieutil"
@@ -28,6 +29,8 @@ type WechatAddon struct {
 }
 
 func (a *WechatAddon) Response(f *proxy.Flow) {
+	fmt.Println(f.Request.URL.Path, f.Request.URL.RawQuery)
+
 	// 该插件只拦截文章详情页
 	if f.Request.URL.Hostname() != "mp.weixin.qq.com" ||
 		f.Request.URL.Path != "/s" {
@@ -43,28 +46,17 @@ func (a *WechatAddon) Response(f *proxy.Flow) {
 	cookie := f.Request.Header.Get("cookie")
 	cookieMap := cookieutil.StrToMap(cookie)
 	if _, exists := cookieMap["appmsg_token"]; exists {
-		//header := f.Request.Header.Clone()
-		//buf := bytes.NewBuffer(nil)
-		//err := header.WriteSubset(buf, map[string]bool{
-		//	"Referer":           true,
-		//	"If-Modified-Since": true,
-		//})
-		//if err != nil {
-		//	log.Println(err)
-		//}
-
 		mysql.Init()
 		wxuin := cookieMap["wxuin"]
-		err := query.WechatHeader.
+		err := query.WechatCookie.
 			Clauses(clause.OnConflict{
 				UpdateAll: true,
 			}).
-			Create(&model.WechatHeader{
-				Wxuin:   wxuin,
-				Type:    "wechat",
-				Headers: "",
-				Cookie:  cookie,
-				Status:  "valid",
+			Create(&model.WechatCookie{
+				Wxuin:  wxuin,
+				Type:   "wechat",
+				Cookie: cookie,
+				Status: "valid",
 			})
 		if err != nil {
 			log.Println(err)

@@ -8,20 +8,19 @@ import (
 	"time"
 )
 
-const TableNameWechatHeader = "wechat_headers"
+const TableNameWechatCookie = "wechat_cookie"
 
-// WechatHeader mapped from table <wechat_headers>
-type WechatHeader struct {
+// WechatCookie mapped from table <wechat_cookie>
+type WechatCookie struct {
 	ID         int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	Wxuin      string    `gorm:"column:wxuin;not null" json:"wxuin"`
 	Type       string    `gorm:"column:type;not null" json:"type"`
-	Headers    string    `gorm:"column:headers;not null" json:"headers"`
 	Cookie     string    `gorm:"column:cookie;not null" json:"cookie"`
 	Status     string    `gorm:"column:status;not null" json:"status"`
 	CreateTime time.Time `gorm:"column:create_time;not null;default:CURRENT_TIMESTAMP" json:"create_time"`
 }
 
-// TableName WechatHeader's table name
-func (*WechatHeader) TableName() string {
-	return TableNameWechatHeader
+// TableName WechatCookie's table name
+func (*WechatCookie) TableName() string {
+	return TableNameWechatCookie
 }

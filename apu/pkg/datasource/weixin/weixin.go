@@ -3,7 +3,6 @@ package weixin
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"html"
 	"net/url"
 	"strings"
@@ -49,8 +48,7 @@ func GetArticleStatByURL(rawURL string) (*article.Stat, error) {
 		return nil, errors.New("查询参数不足")
 	}
 
-	fmt.Println(biz, mid, idx, sn)
-	return nil, nil
+	return GetArticleStat(biz, mid, idx, sn)
 }
 
 func getShortURLValues(shortURL string) (values url.Values, err error) {

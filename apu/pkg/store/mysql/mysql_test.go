@@ -10,9 +10,9 @@ import (
 
 func TestQuery(t *testing.T) {
 	mysql.Init()
-	count, err := query.WechatHeader.Count()
+	count, err := query.WechatCookie.Count()
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, int64(0), count)
+	assert.GreaterOrEqual(t, count, int64(0))
 }

@@ -17,25 +17,25 @@ import (
 
 var (
 	Q            = new(Query)
-	WechatHeader *wechatHeader
+	WechatCookie *wechatCookie
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
-	WechatHeader = &Q.WechatHeader
+	WechatCookie = &Q.WechatCookie
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:           db,
-		WechatHeader: newWechatHeader(db, opts...),
+		WechatCookie: newWechatCookie(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	WechatHeader wechatHeader
+	WechatCookie wechatCookie
 }
 
 func (q *Query) Available() bool { return q.db != nil }
@@ -43,7 +43,7 @@ func (q *Query) Available() bool { return q.db != nil }
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:           db,
-		WechatHeader: q.WechatHeader.clone(db),
+		WechatCookie: q.WechatCookie.clone(db),
 	}
 }
 
@@ -58,17 +58,17 @@ func (q *Query) WriteDB() *Query {
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:           db,
-		WechatHeader: q.WechatHeader.replaceDB(db),
+		WechatCookie: q.WechatCookie.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	WechatHeader IWechatHeaderDo
+	WechatCookie IWechatCookieDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		WechatHeader: q.WechatHeader.WithContext(ctx),
+		WechatCookie: q.WechatCookie.WithContext(ctx),
 	}
 }
 
