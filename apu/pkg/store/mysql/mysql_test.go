@@ -10,7 +10,7 @@ import (
 
 func TestQuery(t *testing.T) {
 	mysql.Init()
-	count, err := query.WechatCookie.Count()
+	count, err := query.WeRequest.Count()
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -18,7 +18,7 @@ func main() {
 	g.UseDB(gormdb)
 
 	g.ApplyBasic(
-		g.GenerateModel("wechat_cookie"),
+		g.GenerateModel("we_request"),
 	)
 	g.Execute()
 }

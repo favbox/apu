@@ -55,11 +55,12 @@ func startProxy() func(cmd *cobra.Command, args []string) {
 			return slices.Contains(allowHosts, req.Host)
 		})
 
-		p.AddAddon(&addon.WechatAddon{}) // 拦截微信请求头
+		p.AddAddon(&addon.WechatAddon{}) // 拦截微信请求
+		p.AddAddon(&addon.WereadAddon{}) // 拦截微信读书请求
 
 		err = p.Start()
 		if err != nil {
-			log.Err(err)
+			log.Fatal().Err(err)
 		}
 	}
 }

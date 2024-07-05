@@ -2,7 +2,6 @@ package addon
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 
 	"apu/internal/cookieutil"
@@ -13,24 +12,13 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-const reloadWindowJavascript = `
-	<script type="text/javascript">
-		setInterval(() => {
-			window.location.href=window.location.href;
-		}, 3000);
-	</script>
-</body>
-`
-
 // WechatAddon 微信代理插件。
-// 用于拦截文章阅读量请求头。
+// 用于拦截微信APP[PC|Mobile]包含 appmsg_token 的 cookie。
 type WechatAddon struct {
 	proxy.BaseAddon
 }
 
 func (a *WechatAddon) Response(f *proxy.Flow) {
-	fmt.Println(f.Request.URL.Path, f.Request.URL.RawQuery)
-
 	// 该插件只拦截文章详情页
 	if f.Request.URL.Hostname() != "mp.weixin.qq.com" ||
 		f.Request.URL.Path != "/s" {
@@ -48,24 +36,33 @@ func (a *WechatAddon) Response(f *proxy.Flow) {
 	if _, exists := cookieMap["appmsg_token"]; exists {
 		mysql.Init()
 		wxuin := cookieMap["wxuin"]
-		err := query.WechatCookie.
+		err := query.WeRequest.
 			Clauses(clause.OnConflict{
 				UpdateAll: true,
 			}).
-			Create(&model.WechatCookie{
-				Wxuin:  wxuin,
+			Create(&model.WeRequest{
 				Type:   "wechat",
+				UserID: wxuin,
 				Cookie: cookie,
 				Status: "valid",
 			})
 		if err != nil {
 			log.Println(err)
 		}
-		log.Println("已捕获新的微信可用会话", wxuin)
+		log.Println("已捕获新的【微信】可用会话", wxuin)
 	}
 }
 
 func injectRefreshJavascript(f *proxy.Flow) {
+	const reloadWindowJavascript = `
+	<script type="text/javascript">
+		setInterval(() => {
+			window.location.href=window.location.href;
+		}, 3000);
+	</script>
+</body>
+`
+
 	body := f.Response.Body
 	newBody := bytes.Replace(body, []byte("</body>"), []byte(reloadWindowJavascript), 1)
 	f.Response.Body = newBody

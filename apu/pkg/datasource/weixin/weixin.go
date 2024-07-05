@@ -13,6 +13,12 @@ import (
 
 var ErrWrongURL = errors.New("网址异常")
 
+// GetArticles 获取公众号下的文章列表。
+func GetArticles(biz string, count, offset, syncKey int) ([]*article.Article, int, error) {
+	bookId := Biz2BookId(biz)
+	return article.GetArticles(bookId, count, offset, syncKey)
+}
+
 // GetArticleStat 获取文章统计信息。
 func GetArticleStat(biz, mid, idx, sn string) (*article.Stat, error) {
 	return article.GetStat(biz, mid, idx, sn)

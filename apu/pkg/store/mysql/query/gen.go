@@ -16,34 +16,34 @@ import (
 )
 
 var (
-	Q            = new(Query)
-	WechatCookie *wechatCookie
+	Q         = new(Query)
+	WeRequest *weRequest
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
-	WechatCookie = &Q.WechatCookie
+	WeRequest = &Q.WeRequest
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:           db,
-		WechatCookie: newWechatCookie(db, opts...),
+		db:        db,
+		WeRequest: newWeRequest(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	WechatCookie wechatCookie
+	WeRequest weRequest
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:           db,
-		WechatCookie: q.WechatCookie.clone(db),
+		db:        db,
+		WeRequest: q.WeRequest.clone(db),
 	}
 }
 
@@ -57,18 +57,18 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:           db,
-		WechatCookie: q.WechatCookie.replaceDB(db),
+		db:        db,
+		WeRequest: q.WeRequest.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	WechatCookie IWechatCookieDo
+	WeRequest IWeRequestDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		WechatCookie: q.WechatCookie.WithContext(ctx),
+		WeRequest: q.WeRequest.WithContext(ctx),
 	}
 }
 

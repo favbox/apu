@@ -34,3 +34,16 @@ func TestGetArticleStatByURL(t *testing.T) {
 	assert.NotNil(t, stat)
 	fmt.Printf("%#v", stat)
 }
+
+func TestGetArticles(t *testing.T) {
+	biz := "MzkyMDA3MDcwMQ=="
+	count := 20
+	offset := 0
+	syncKey := 0
+	articles, nextKey, err := weixin.GetArticles(biz, count, offset, syncKey)
+	assert.Nil(t, err)
+	fmt.Println(nextKey)
+	for _, a := range articles {
+		fmt.Println(a.Time, a.Title, a.DocUrl)
+	}
+}

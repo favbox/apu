@@ -1,5 +1,36 @@
 package article
 
+// 文章列表
+type (
+	Article struct {
+		Time    int    `json:"time"`
+		Avatar  string `json:"avatar"`
+		MpName  string `json:"mp_name"`
+		Title   string `json:"title"`
+		Content string `json:"content"`
+		DocUrl  string `json:"doc_url"`
+		PicUrl  string `json:"pic_url"`
+	}
+
+	ReviewInfo struct {
+		Review struct {
+			BelongBookId string   `json:"belongBookId"`
+			MpInfo       *Article `json:"mpInfo"`
+		} `json:"review"`
+		ReviewId string `json:"reviewId"`
+	}
+
+	ArticlesResult struct {
+		Errcode int    `json:"errcode"`
+		Errlog  string `json:"errlog"`
+		Errmsg  string `json:"errmsg"`
+
+		ClearAll int           `json:"clearAll"`
+		Reviews  []*ReviewInfo `json:"reviews"`
+		SyncKey  int           `json:"synckey"`
+	}
+)
+
 // 文章统计
 type (
 	Stat struct {
