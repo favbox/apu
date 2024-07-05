@@ -10,7 +10,7 @@ import (
 )
 
 // GetArticles 利用微信读书 headers 获取公众号的文章列表。
-func GetArticles(bookId string, count, offset, syncKey int) (articles []*Article, nextSyncKey int, err error) {
+func GetArticles(bookId string, count, offset, syncKey int) (articles []*BookArticle, nextSyncKey int, err error) {
 	// 获取微信读书请求头
 	//mysql.Init()
 	weRequest, err := query.WeRequest.Where(
@@ -69,6 +69,10 @@ func GetArticles(bookId string, count, offset, syncKey int) (articles []*Article
 	return
 }
 
+// GetArticle 获取公开的公众号文章详情。
+func GetArticle(biz, mid, idx, sn string) {
+}
+
 // GetStat 利用微信 cookie 获取文章统计信息。 https://www.cnblogs.com/jianpansangejian/p/17970546
 func GetStat(biz, mid, idx, sn string) (*Stat, error) {
 	// 获取微信阅读量请求 cookie
@@ -121,6 +125,9 @@ func GetStat(biz, mid, idx, sn string) (*Stat, error) {
 	}
 	if resp.IsErrorState() {
 		return nil, errors.New(resp.GetStatus())
+	}
+	if result.ArticleStat == nil {
+		return nil, errors.New("会话已过期")
 	}
 
 	return result.ArticleStat, nil

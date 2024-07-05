@@ -1,8 +1,8 @@
 package article
 
-// 文章列表
+// 微信读书的文章列表
 type (
-	Article struct {
+	BookArticle struct {
 		Time    int    `json:"time"`
 		Avatar  string `json:"avatar"`
 		MpName  string `json:"mp_name"`
@@ -14,8 +14,8 @@ type (
 
 	ReviewInfo struct {
 		Review struct {
-			BelongBookId string   `json:"belongBookId"`
-			MpInfo       *Article `json:"mpInfo"`
+			BelongBookId string       `json:"belongBookId"`
+			MpInfo       *BookArticle `json:"mpInfo"`
 		} `json:"review"`
 		ReviewId string `json:"reviewId"`
 	}
