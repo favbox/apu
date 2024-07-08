@@ -3,11 +3,15 @@ package article
 import (
 	"encoding/json"
 	"errors"
+	"html"
+	"strings"
 
 	"apu/internal/cookieutil"
 	"apu/pkg/store/mysql/query"
 	"github.com/imroc/req/v3"
 )
+
+const DetailURLPattern = "http://mp.weixin.qq.com/mp/appmsg/show?__biz=%s&appmsgid=%s&itemidx=%s#wechat_redirect"
 
 // GetArticles 利用微信读书 headers 获取公众号的文章列表。
 func GetArticles(bookId string, count, offset, syncKey int) (articles []*BookArticle, nextSyncKey int, err error) {
@@ -69,10 +73,6 @@ func GetArticles(bookId string, count, offset, syncKey int) (articles []*BookArt
 	return
 }
 
-// GetArticle 获取公开的公众号文章详情。
-func GetArticle(biz, mid, idx, sn string) {
-}
-
 // GetStat 利用微信 cookie 获取文章统计信息。 https://www.cnblogs.com/jianpansangejian/p/17970546
 func GetStat(biz, mid, idx, sn string) (*Stat, error) {
 	// 获取微信阅读量请求 cookie
@@ -131,4 +131,71 @@ func GetStat(biz, mid, idx, sn string) (*Stat, error) {
 	}
 
 	return result.ArticleStat, nil
+}
+
+func GetStatByURL(rawURL string) (*Stat, error) {
+	biz, mid, idx, sn, err := GetArticleParams(rawURL)
+	if err != nil {
+		return nil, err
+	}
+	if biz == "" || mid == "" || idx == "" || sn == "" {
+		return nil, errors.New("查询参数不足")
+	}
+
+	return nil, nil
+}
+
+// GetArticle 获取公开的公众号文章详情。
+func GetArticle(rawURL string) (*Info, error) {
+	// http://mp.weixin.qq.com/mp/appmsg/show?__biz=MjM5ODIyMTE0MA==&amp;appmsgid=10000382&amp;itemidx=1#wechat_redirect
+	// http://mp.weixin.qq.com/s?__biz=MzA5ODEzMjIyMA==&amp;mid=2247713279&amp;idx=1&amp;sn=bd67c1aba187bc8833f4aee60d8a0e90&amp;chksm=909b886ca7ec017a4c72af5460dcdfe672a74450da0cec34f99cab825d512ab37e4c8715eda6#rd
+
+	if strings.HasPrefix(rawURL, "http://") {
+		rawURL = strings.Replace(rawURL, "http://", "https://", 1)
+	}
+	rawURL = html.UnescapeString(rawURL)
+	if err := CheckURLValid(rawURL); err != nil {
+		return nil, err
+	}
+
+	resp := req.MustGet(rawURL)
+	defer resp.Body.Close()
+	//r.SetHeaders(map[string]string{
+	//	"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+	//	//"Accept-Encoding": "gzip, deflate, br, zstd",
+	//	"Cache-Control": "max-age=0",
+	//	//"Cookie":        "rewardsn=; wxtokenkey=777",
+	//	"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+	//})
+	//
+	//// 设置请求参数
+	////r.SetQueryParams(map[string]string{
+	////	"__biz": biz,
+	////	"mid":   mid,
+	////	"idx":   idx,
+	////	"sn":    sn,
+	////})
+	//
+	//// 发起请求
+	//resp, err := r.Get(rawURL)
+	//if err != nil {
+	//	return nil, err
+	//}
+	if resp.IsErrorState() {
+		return nil, errors.New(resp.GetStatus())
+	}
+
+	body := resp.Bytes()
+	if e := CheckResponseError(body); e != nil {
+		return nil, e
+	}
+
+	// 清理文章
+	article, err := CleanArticle(body)
+	if err != nil {
+		return nil, err
+	}
+	_ = resp.Body.Close()
+
+	return article, nil
 }

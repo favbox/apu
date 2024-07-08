@@ -1,5 +1,19 @@
 package article
 
+import "time"
+
+// Info 微信公众号文章信息
+type Info struct {
+	Biz, Mid, Idx, Sn           string
+	MpName, MpWeixinID, MpIntro string
+
+	Title       string
+	Image       string
+	Description string
+
+	PublishTime time.Time
+}
+
 // 微信读书的文章列表
 type (
 	BookArticle struct {
