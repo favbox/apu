@@ -1,13 +1,16 @@
 package article
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
-	"html"
-	"strings"
 
 	"apu/internal/cookieutil"
+	"apu/pkg/schema"
+	"apu/pkg/source/weixin/article/extractor"
 	"apu/pkg/store/mysql/query"
+	"apu/pkg/utils/stringx"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/imroc/req/v3"
 )
 
@@ -134,68 +137,88 @@ func GetStat(biz, mid, idx, sn string) (*Stat, error) {
 }
 
 func GetStatByURL(rawURL string) (*Stat, error) {
-	biz, mid, idx, sn, err := GetArticleParams(rawURL)
+	k, err := GetKeyInfo(rawURL)
 	if err != nil {
 		return nil, err
 	}
-	if biz == "" || mid == "" || idx == "" || sn == "" {
-		return nil, errors.New("查询参数不足")
-	}
 
-	return nil, nil
+	return GetStat(k.Biz, k.Mid, k.Idx, k.Sn)
 }
 
 // GetArticle 获取公开的公众号文章详情。
-func GetArticle(rawURL string) (*Info, error) {
-	// http://mp.weixin.qq.com/mp/appmsg/show?__biz=MjM5ODIyMTE0MA==&amp;appmsgid=10000382&amp;itemidx=1#wechat_redirect
-	// http://mp.weixin.qq.com/s?__biz=MzA5ODEzMjIyMA==&amp;mid=2247713279&amp;idx=1&amp;sn=bd67c1aba187bc8833f4aee60d8a0e90&amp;chksm=909b886ca7ec017a4c72af5460dcdfe672a74450da0cec34f99cab825d512ab37e4c8715eda6#rd
+func GetArticle(rawURL string) (*schema.Document, error) {
+	var err error
 
-	if strings.HasPrefix(rawURL, "http://") {
-		rawURL = strings.Replace(rawURL, "http://", "https://", 1)
-	}
-	rawURL = html.UnescapeString(rawURL)
-	if err := CheckURLValid(rawURL); err != nil {
+	// 检测网址异常
+	rawURL, err = HasURLError(rawURL)
+	if err != nil {
 		return nil, err
 	}
 
-	resp := req.MustGet(rawURL)
-	defer resp.Body.Close()
-	//r.SetHeaders(map[string]string{
-	//	"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-	//	//"Accept-Encoding": "gzip, deflate, br, zstd",
-	//	"Cache-Control": "max-age=0",
-	//	//"Cookie":        "rewardsn=; wxtokenkey=777",
-	//	"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-	//})
-	//
-	//// 设置请求参数
-	////r.SetQueryParams(map[string]string{
-	////	"__biz": biz,
-	////	"mid":   mid,
-	////	"idx":   idx,
-	////	"sn":    sn,
-	////})
-	//
-	//// 发起请求
-	//resp, err := r.Get(rawURL)
-	//if err != nil {
-	//	return nil, err
-	//}
+	resp, err := req.Get(rawURL)
+
+	// 检测请求异常
+	if err != nil {
+		return nil, err
+	}
 	if resp.IsErrorState() {
 		return nil, errors.New(resp.GetStatus())
 	}
 
-	body := resp.Bytes()
-	if e := CheckResponseError(body); e != nil {
-		return nil, e
-	}
-
-	// 清理文章
-	article, err := CleanArticle(body)
+	// 检测响应体异常
+	body, err := resp.ToBytes()
 	if err != nil {
 		return nil, err
 	}
-	_ = resp.Body.Close()
+	if err := HasResponseError(body); err != nil {
+		return nil, err
+	}
+
+	// 创建为 goquery 文档
+	gq, err := goquery.NewDocumentFromReader(bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+
+	// 提取关键参数
+	link := gq.Find("meta[property='og:url']").AttrOr("content", "")
+	if link == "" {
+		return nil, errors.New("无法找到 og:url")
+	}
+	keyInfo, err := GetKeyInfo(link)
+	if err != nil {
+		return nil, err
+	}
+
+	// 构建初始文档
+	article := &schema.Document{
+		Source:      schema.Weixin,
+		Key:         keyInfo.Key,
+		Author:      keyInfo.Biz,
+		OriginalUrl: keyInfo.Url,
+	}
+
+	// 提取发布时间
+	if publishTime, ok := extractor.ExtractPublishTime(body); ok {
+		article.PublishTime = publishTime
+	}
+
+	// 提取标题
+	mpName := stringx.Trim(gq.Find("#js_name").Text())
+	article.Title = extractor.ExtractTitle(
+		mpName,
+		gq.Find("meta[property='og:title']").AttrOr("content", ""),
+	)
+
+	// 提取正文
+	article.Content = gq.Find("#js_content").Text()
+
+	// 提取图片列表
+	images, err := extractor.ExtractImages(body)
+	if err != nil {
+		return nil, err
+	}
+	article.Images = images
 
 	return article, nil
 }
