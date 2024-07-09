@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"log"
 
-	"apu/internal/cookieutil"
 	"apu/pkg/store/mysql"
 	"apu/pkg/store/mysql/model"
 	"apu/pkg/store/mysql/query"
+	"apu/pkg/utils/cookieutil"
 	"github.com/lqqyt2423/go-mitmproxy/proxy"
 	"gorm.io/gorm/clause"
 )

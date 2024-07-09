@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 
-	"apu/internal/cookieutil"
 	"apu/pkg/schema"
 	"apu/pkg/source/weixin/article/extractor"
 	"apu/pkg/store/mysql/query"
+	"apu/pkg/utils/cookieutil"
 	"apu/pkg/utils/stringx"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/imroc/req/v3"
