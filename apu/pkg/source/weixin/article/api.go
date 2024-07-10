@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"apu/pkg/schema"
 	"apu/pkg/source/weixin/article/extractor"
@@ -12,29 +13,31 @@ import (
 	"apu/pkg/utils/stringx"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/imroc/req/v3"
+	"go.uber.org/ratelimit"
 )
 
-const DetailURLPattern = "http://mp.weixin.qq.com/mp/appmsg/show?__biz=%s&appmsgid=%s&itemidx=%s#wechat_redirect"
+var limiterBySecond1 = ratelimit.New(1)
 
 // GetArticles 利用微信读书 headers 获取公众号的文章列表。
-func GetArticles(bookId string, count, offset, syncKey int) (articles []*BookArticle, nextSyncKey int, err error) {
+func GetArticles(bookId string, count, offset, syncKey int) ([]*schema.Document, int, error) {
+	limiterBySecond1.Take()
+
 	// 获取微信读书请求头
 	//mysql.Init()
-	weRequest, err := query.WeRequest.Where(
-		query.WeRequest.Type.Eq("weread"),
-		query.WeRequest.Status.Eq("valid"),
+	wexinRequest, err := query.WexinRequest.Where(
+		query.WexinRequest.Type.Eq("weread"),
+		query.WexinRequest.Status.Eq("valid"),
 	).First()
 	if err != nil {
-		return
+		return nil, 0, err
 	}
 	var headers map[string]string
-	err = json.Unmarshal([]byte(weRequest.Headers), &headers)
+	err = json.Unmarshal([]byte(wexinRequest.Headers), &headers)
 	if err != nil {
-		return
+		return nil, 0, err
 	}
 	if len(headers) == 0 {
-		err = errors.New("无可用请求头")
-		return
+		return nil, 0, errors.New("无可用请求头")
 	}
 
 	request := req.R()
@@ -57,32 +60,56 @@ func GetArticles(bookId string, count, offset, syncKey int) (articles []*BookArt
 	// 发起请求
 	resp, err := request.Get("https://i.weread.qq.com/book/articles")
 	if err != nil {
-		return
+		return nil, 0, err
 	}
 	if resp.IsErrorState() {
-		err = errors.New(resp.GetStatus())
-		return
+		return nil, 0, errors.New(resp.GetStatus())
 	}
 	if result.Errmsg != "" {
-		err = errors.New(result.Errmsg)
-		return
+		return nil, 0, errors.New(result.Errmsg)
 	}
 
-	nextSyncKey = result.SyncKey
+	var articles []*schema.Document
 	for _, review := range result.Reviews {
-		articles = append(articles, review.Review.MpInfo)
+		a := review.Review.MpInfo
+		keyInfo, err := GetKeyInfo(a.DocUrl)
+		if err != nil {
+			return nil, 0, err
+		}
+		articles = append(articles, &schema.Document{
+			Source:      schema.Weixin,
+			Key:         keyInfo.Key,
+			Author:      keyInfo.Biz,
+			PublishTime: time.Unix(a.Time, 0),
+			OriginalUrl: a.DocUrl,
+			Title:       a.Title,
+			Content:     a.Content,
+		})
 	}
 
-	return
+	return articles, result.SyncKey, nil
 }
+
+// var lastStatTime time.Time
+var limiterBySecond3 = ratelimit.New(1, ratelimit.Per(3*time.Second))
 
 // GetStat 利用微信 cookie 获取文章统计信息。 https://www.cnblogs.com/jianpansangejian/p/17970546
 func GetStat(biz, mid, idx, sn string) (*Stat, error) {
+	//if !lastStatTime.IsZero() {
+	//	duration := time.Since(lastStatTime)
+	//	minDuration := 3 * time.Second
+	//	if duration < minDuration {
+	//		time.Sleep(minDuration - duration)
+	//	}
+	//}
+	//lastStatTime = time.Now()
+	limiterBySecond3.Take()
+
 	// 获取微信阅读量请求 cookie
 	//mysql.Init()
-	weRequest, err := query.WeRequest.Where(
-		query.WeRequest.Type.Eq("wechat"),
-		query.WeRequest.Status.Eq("valid"),
+	wexinRequest, err := query.WexinRequest.Where(
+		query.WexinRequest.Type.Eq("wechat"),
+		query.WexinRequest.Status.Eq("valid"),
 	).First()
 	if err != nil {
 		return nil, err
@@ -91,7 +118,7 @@ func GetStat(biz, mid, idx, sn string) (*Stat, error) {
 	request := req.R()
 
 	// 设置查询参数
-	cookieMap := cookieutil.StrToMap(weRequest.Cookie)
+	cookieMap := cookieutil.StrToMap(wexinRequest.Cookie)
 	request.SetQueryParams(map[string]string{
 		"appmsg_token": cookieMap["appmsg_token"],
 		"x5":           "0",
@@ -100,7 +127,7 @@ func GetStat(biz, mid, idx, sn string) (*Stat, error) {
 	// 设置请求头
 	request.SetHeaders(map[string]string{
 		"User-Agent":   "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0Chrome/57.0.2987.132 MQQBrowser/6.2 Mobile",
-		"Cookie":       weRequest.Cookie,
+		"Cookie":       wexinRequest.Cookie,
 		"Origin":       "https://mp.weixin.qq.com",
 		"Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
 		"Host":         "mp.weixin.qq.com",
@@ -129,8 +156,11 @@ func GetStat(biz, mid, idx, sn string) (*Stat, error) {
 	if resp.IsErrorState() {
 		return nil, errors.New(resp.GetStatus())
 	}
+	if result.BaseResp.Ret == 301 {
+		return nil, errors.New("基础响应码为 301")
+	}
 	if result.ArticleStat == nil {
-		return nil, errors.New("会话已过期")
+		return nil, errors.New("当前无法获取阅读量")
 	}
 
 	return result.ArticleStat, nil

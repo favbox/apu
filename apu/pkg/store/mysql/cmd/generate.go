@@ -18,7 +18,10 @@ func main() {
 	g.UseDB(gormdb)
 
 	g.ApplyBasic(
-		g.GenerateModel("we_request"),
+		g.GenerateModel("wexin_request"),
+		g.GenerateModel("document", gen.FieldType("key", "uint64")),
+		g.GenerateModel("image", gen.FieldType("key", "uint64")),
+		g.GenerateModel("interaction", gen.FieldType("key", "uint64")),
 	)
 	g.Execute()
 }

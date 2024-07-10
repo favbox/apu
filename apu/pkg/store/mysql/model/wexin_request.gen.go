@@ -8,20 +8,21 @@ import (
 	"time"
 )
 
-const TableNameWeRequest = "we_request"
+const TableNameWexinRequest = "wexin_request"
 
-// WeRequest mapped from table <we_request>
-type WeRequest struct {
+// WexinRequest mapped from table <wexin_request>
+type WexinRequest struct {
 	ID         int32     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	UserID     string    `gorm:"column:user_id;not null;comment:weread:vid, wechat:wxuin" json:"user_id"` // weread:vid, wechat:wxuin
 	Type       string    `gorm:"column:type;not null" json:"type"`
+	UserID     string    `gorm:"column:user_id;not null;comment:wxuin或vid" json:"user_id"` // wxuin或vid
 	Headers    string    `gorm:"column:headers;not null" json:"headers"`
 	Cookie     string    `gorm:"column:cookie;not null" json:"cookie"`
 	Status     string    `gorm:"column:status;not null" json:"status"`
 	CreateTime time.Time `gorm:"column:create_time;not null;default:CURRENT_TIMESTAMP" json:"create_time"`
+	UpdateTime time.Time `gorm:"column:update_time;not null;default:CURRENT_TIMESTAMP" json:"update_time"`
 }
 
-// TableName WeRequest's table name
-func (*WeRequest) TableName() string {
-	return TableNameWeRequest
+// TableName WexinRequest's table name
+func (*WexinRequest) TableName() string {
+	return TableNameWexinRequest
 }

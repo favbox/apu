@@ -58,11 +58,11 @@ func (a *WereadAddon) Response(f *proxy.Flow) {
 
 	if vid != "" {
 		mysql.Init()
-		err := query.WeRequest.
+		err := query.WexinRequest.
 			Clauses(clause.OnConflict{
 				UpdateAll: true,
 			}).
-			Create(&model.WeRequest{
+			Create(&model.WexinRequest{
 				Type:    "weread",
 				UserID:  vid,
 				Headers: string(headers),

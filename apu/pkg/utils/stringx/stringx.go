@@ -1,9 +1,12 @@
 package stringx
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 	"unicode"
+
+	"github.com/bytedance/gopkg/util/xxhash3"
 )
 
 // Trim 删除左右两侧及零宽空格。
@@ -43,4 +46,9 @@ func Replace(str string, re *regexp.Regexp, repl ...string) string {
 	}
 	str = Trim(re.ReplaceAllString(str, r))
 	return str
+}
+
+func HashKey(s string) string {
+	hashString := xxhash3.HashString(s)
+	return fmt.Sprintf("%x", hashString)
 }

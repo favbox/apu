@@ -6,7 +6,7 @@ import (
 )
 
 // GetArticles 获取公众号下的文章列表。
-func GetArticles(biz string, count, offset, syncKey int) ([]*article.BookArticle, int, error) {
+func GetArticles(biz string, count, offset, syncKey int) ([]*schema.Document, int, error) {
 	bookId := Biz2BookId(biz)
 	return article.GetArticles(bookId, count, offset, syncKey)
 }

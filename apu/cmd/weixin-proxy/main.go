@@ -1,7 +1,7 @@
 package main
 
 import (
-	"apu/cmd/wechat-proxy/command"
+	"apu/cmd/weixin-proxy/command"
 )
 
 func main() {

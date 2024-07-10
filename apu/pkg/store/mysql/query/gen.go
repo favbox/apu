@@ -16,34 +16,49 @@ import (
 )
 
 var (
-	Q         = new(Query)
-	WeRequest *weRequest
+	Q            = new(Query)
+	Document     *document
+	Image        *image
+	Interaction  *interaction
+	WexinRequest *wexinRequest
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
-	WeRequest = &Q.WeRequest
+	Document = &Q.Document
+	Image = &Q.Image
+	Interaction = &Q.Interaction
+	WexinRequest = &Q.WexinRequest
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:        db,
-		WeRequest: newWeRequest(db, opts...),
+		db:           db,
+		Document:     newDocument(db, opts...),
+		Image:        newImage(db, opts...),
+		Interaction:  newInteraction(db, opts...),
+		WexinRequest: newWexinRequest(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	WeRequest weRequest
+	Document     document
+	Image        image
+	Interaction  interaction
+	WexinRequest wexinRequest
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:        db,
-		WeRequest: q.WeRequest.clone(db),
+		db:           db,
+		Document:     q.Document.clone(db),
+		Image:        q.Image.clone(db),
+		Interaction:  q.Interaction.clone(db),
+		WexinRequest: q.WexinRequest.clone(db),
 	}
 }
 
@@ -57,18 +72,27 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:        db,
-		WeRequest: q.WeRequest.replaceDB(db),
+		db:           db,
+		Document:     q.Document.replaceDB(db),
+		Image:        q.Image.replaceDB(db),
+		Interaction:  q.Interaction.replaceDB(db),
+		WexinRequest: q.WexinRequest.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	WeRequest IWeRequestDo
+	Document     IDocumentDo
+	Image        IImageDo
+	Interaction  IInteractionDo
+	WexinRequest IWexinRequestDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		WeRequest: q.WeRequest.WithContext(ctx),
+		Document:     q.Document.WithContext(ctx),
+		Image:        q.Image.WithContext(ctx),
+		Interaction:  q.Interaction.WithContext(ctx),
+		WexinRequest: q.WexinRequest.WithContext(ctx),
 	}
 }
 

@@ -16,3 +16,11 @@ type Document struct {
 
 	Images []*Image
 }
+
+var (
+	DocumentStageInit       int32 = 0
+	DocumentStageStated     int32 = 1
+	DocumentStageDetailed   int32 = 2
+	DocumentStageStructured int32 = 3
+	DocumentStageEmbedded   int32 = 4
+)

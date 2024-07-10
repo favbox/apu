@@ -36,11 +36,11 @@ func (a *WechatAddon) Response(f *proxy.Flow) {
 	if _, exists := cookieMap["appmsg_token"]; exists {
 		mysql.Init()
 		wxuin := cookieMap["wxuin"]
-		err := query.WeRequest.
+		err := query.WexinRequest.
 			Clauses(clause.OnConflict{
 				UpdateAll: true,
 			}).
-			Create(&model.WeRequest{
+			Create(&model.WexinRequest{
 				Type:   "wechat",
 				UserID: wxuin,
 				Cookie: cookie,
