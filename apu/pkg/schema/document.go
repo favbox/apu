@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// Document 是与文档交互的接口。
 type Document struct {
 	Source
 	Key uint64

@@ -4,11 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"log"
-	"net/url"
 	"regexp"
 	"strconv"
-	"strings"
 
 	"apu/pkg/schema"
 	"github.com/bytedance/gopkg/util/xxhash3"
@@ -23,10 +20,10 @@ type PicInfo struct {
 }
 
 // ExtractImages 从响应体中提取图片列表。
-func ExtractImages(body []byte) ([]*schema.Image, error) {
+func ExtractImages(body []byte) ([]*schema.Image, map[uint64][2]int, error) {
 	submatch := rePicturePageInfoListJs.FindSubmatch(body)
 	if len(submatch) != 2 {
-		return nil, errors.New("无法提取文中图片页面信息列表，请检查文档 picturePageInfoList")
+		return nil, nil, errors.New("无法提取文中图片页面信息列表，请检查文档 picturePageInfoList")
 	}
 
 	jsonBytes := submatch[1]
@@ -43,11 +40,12 @@ func ExtractImages(body []byte) ([]*schema.Image, error) {
 	var picturePageInfoList []PicInfo
 	err := json.Unmarshal(jsonBytes, &picturePageInfoList)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	// 遍历图片并回调函数
+	// 追加图片及唯一键
 	var images []*schema.Image
+	imageSizeMap := make(map[uint64][2]int, len(picturePageInfoList))
 	for _, p := range picturePageInfoList {
 		width, _ := strconv.Atoi(p.Width)
 		height, _ := strconv.Atoi(p.Height)
@@ -56,37 +54,11 @@ func ExtractImages(body []byte) ([]*schema.Image, error) {
 			Width:       width,
 			Height:      height,
 			OriginalUrl: p.CdnUrl,
+			Key:         xxhash3.HashString(p.CdnUrl),
 		}
-		if err = packImage(image); err == nil {
-			images = append(images, image)
-		} else {
-			log.Println(err, p.CdnUrl)
-		}
+		images = append(images, image)
+		imageSizeMap[image.Key] = [2]int{image.Width, image.Height}
 	}
 
-	return images, nil
-}
-
-func packImage(image *schema.Image) error {
-	parsedURL, err := url.Parse(image.OriginalUrl)
-	if err != nil {
-		return err
-	}
-	hostname := parsedURL.Hostname()
-	if hostname != "mmbiz.qpic.cn" {
-		return errors.New("微信公众号图片域名异常")
-	}
-
-	imagePath := parsedURL.Path
-	if !strings.HasPrefix(imagePath, "/mmbiz_") {
-		return errors.New("微信公众号图片路径前缀异常")
-	}
-	if vs := strings.SplitN(imagePath, "/", 4); len(vs) == 4 {
-		image.Format = strings.TrimPrefix(vs[1], "mmbiz_")
-		if vs[2] != "" {
-			image.OriginalUrl = vs[2]
-			image.Key = xxhash3.HashString(vs[2])
-		}
-	}
-	return nil
+	return images, imageSizeMap, nil
 }

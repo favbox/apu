@@ -17,7 +17,6 @@ type Image struct {
 	Source      int32     `gorm:"column:source;not null" json:"source"`
 	Key         uint64    `gorm:"column:key;not null;comment:xxhash3(key)" json:"key"` // xxhash3(key)
 	OriginalURL string    `gorm:"column:original_url;not null" json:"original_url"`
-	Format      string    `gorm:"column:format;not null" json:"format"`
 	Width       int32     `gorm:"column:width;not null" json:"width"`
 	Height      int32     `gorm:"column:height;not null" json:"height"`
 	CreateTime  time.Time `gorm:"column:create_time;not null;default:CURRENT_TIMESTAMP" json:"create_time"`

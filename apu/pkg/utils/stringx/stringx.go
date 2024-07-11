@@ -7,6 +7,7 @@ import (
 	"unicode"
 
 	"github.com/bytedance/gopkg/util/xxhash3"
+	"golang.org/x/exp/constraints"
 )
 
 // Trim 删除左右两侧及零宽空格。
@@ -51,4 +52,24 @@ func Replace(str string, re *regexp.Regexp, repl ...string) string {
 func HashKey(s string) string {
 	hashString := xxhash3.HashString(s)
 	return fmt.Sprintf("%x", hashString)
+}
+
+type Parseable interface {
+	// NOTE: I didn't check that fmt.Sscanf can accept all these,
+	// but it seems like it probably should...
+	string | bool | constraints.Integer | constraints.Float | constraints.Complex
+}
+
+func Parse[T Parseable](str string) (T, error) {
+	var result T
+	_, err := fmt.Sscanf(str, "%v", &result)
+	return result, err
+}
+
+func MustNumber[T constraints.Float | constraints.Integer](s string) T {
+	n, err := Parse[T](s)
+	if err != nil {
+		return 0
+	}
+	return n
 }

@@ -4,15 +4,24 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"os"
+	"regexp"
+	"strings"
 	"time"
+	"unicode/utf8"
 
 	"apu/pkg/schema"
 	"apu/pkg/source/weixin/article/extractor"
 	"apu/pkg/store/mysql/query"
 	"apu/pkg/utils/cookieutil"
 	"apu/pkg/utils/stringx"
+	md "github.com/JohannesKaufmann/html-to-markdown"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/bytedance/gopkg/util/xxhash3"
 	"github.com/imroc/req/v3"
+	"github.com/rs/zerolog/log"
+	"github.com/yuin/goldmark"
 	"go.uber.org/ratelimit"
 )
 
@@ -240,15 +249,250 @@ func GetArticle(rawURL string) (*schema.Document, error) {
 		gq.Find("meta[property='og:title']").AttrOr("content", ""),
 	)
 
-	// 提取正文
-	article.Content = gq.Find("#js_content").Text()
-
 	// 提取图片列表
-	images, err := extractor.ExtractImages(body)
+	images, imageSizeMap, err := extractor.ExtractImages(body)
 	if err != nil {
 		return nil, err
 	}
 	article.Images = images
 
+	// 提取正文
+	var (
+		imageCount = 0
+		breakIndex = -1 // 裁剪线的索引
+		//modules    []string
+	)
+	jsContent := gq.Find("#js_content")
+	jsContent.Find("*").Each(func(i int, s *goquery.Selection) {
+		// 移除裁剪线以后的所有元素
+		if breakIndex > 0 && i > breakIndex {
+			s.Remove()
+			return
+		}
+
+		// 移除所有链接🔗的 href 和 target
+		if s.Is("a") {
+			// 移除内部链接
+			if v, exists := s.Attr("tab"); exists && v == "innerlink" {
+				s.Remove()
+				return
+			}
+			s.RemoveAttr("target").RemoveAttr("href")
+			return
+		}
+
+		// 移除 svg
+		if s.Is("svg") {
+			s.Remove()
+			return
+		}
+
+		// 移除冗余图片
+		if s.Is("img") {
+			// 移除跳转链接的图片
+			if _, exists := s.Parent().Attr("js_jump_icon"); exists {
+				s.Remove()
+				return
+			}
+
+			// 重置 src 以便 markdown 正确解析
+			imgSrc := s.AttrOr("data-src", s.AttrOr("src", ""))
+			s.SetAttr("src", imgSrc).RemoveAttr("data-src")
+
+			if strings.Contains(imgSrc, "icyksg9whhyvcIb5Dz2Zia2lxuwmELLQ1oPGpOYWoFjR1MaVsiabb78ZloJ9eRyeVDL3mxIRoegwnyiblXeiaHice1tw") {
+				fmt.Println()
+			}
+			// 判断是否为图片中断标志位
+			if isBreakImage(imgSrc) {
+				breakIndex = i
+				s.Remove()
+				return
+			}
+
+			// 删除过小的图片
+			imgKey := xxhash3.HashString(imgSrc)
+			imgSize := imageSizeMap[imgKey]
+			if isSmallImage(s, imgSize) {
+				s.Remove()
+				return
+			}
+
+			//modules = append(modules, fmt.Sprintf(`<img src="%s" />`, imgSrc))
+
+			imageCount++
+			return
+		}
+
+		text := stringx.Trim(s.Text())
+
+		// 移除单个字符的文本行
+		textNum := utf8.RuneCountInString(text)
+		if textNum == 1 {
+			s.Remove()
+			return
+		}
+
+		// 判断是否为中断标志位
+		if textNum > 1 && textNum < 50 {
+			if isBreakTextLine(mpName, text) {
+				breakIndex = i
+				s.Remove()
+				return
+			}
+			if isRemovableTextLine(mpName, text) {
+				s.Remove()
+				return
+			}
+		}
+	})
+
+	// goquery -> markdown
+	start := time.Now()
+	converter := md.NewConverter("", true, nil)
+	mdContent := converter.Convert(jsContent)
+	log.Debug().Dur("耗时", time.Since(start)).Msg("goquery -> markdown")
+	//article.Content = jsContent.Text()
+
+	// markdown -> html buffer
+	start = time.Now()
+	buf := bytes.NewBuffer(nil)
+	err = goldmark.Convert([]byte(mdContent), buf)
+	log.Debug().Dur("耗时", time.Since(start)).Msg("markdown -> html")
+	if err != nil {
+		return nil, err
+	}
+
+	article.Content = buf.String()
+	//article.Content, _ = jsContent.Html()
+	//article.Content = strings.Join(modules, "<br />")
+
+	// 保存测试文件
+	saveTestHtml(article)
+
 	return article, nil
+}
+
+func isBreakImage(src string) bool {
+	for _, breakImageKey := range RuleBreakImages {
+		if strings.Contains(src, breakImageKey) {
+			return true
+		}
+	}
+	return false
+}
+
+func isRemovableTextLine(mpName, text string) bool {
+	removableTexts := RuleRemoveTextsMap["DEFAULT"]
+	if vs, exists := RuleRemoveTextsMap[mpName]; exists {
+		removableTexts = append(removableTexts, vs...)
+	}
+
+	for _, removableText := range removableTexts {
+		if isTextMatched(removableText, text) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isBreakTextLine(mpName, text string) bool {
+	breakTexts := RuleBreakTextsMap["DEFAULT"]
+	if vs, exists := RuleBreakTextsMap[mpName]; exists {
+		breakTexts = append(breakTexts, vs...)
+	}
+
+	for _, breakText := range breakTexts {
+		if isTextMatched(breakText, text) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isSmallImage(s *goquery.Selection, size [2]int) bool {
+	minSize := 300
+	minOriginalSize := 600
+	var w, h int
+
+	// 原图宽度【或者】高度过小
+	w, h = size[0], size[1]
+	if w > 0 && w < minOriginalSize || h > 0 && h < minOriginalSize {
+		return true
+	}
+
+	// 展示宽度过小
+	w = extractWidthFromStyle(s.AttrOr("style", ""))
+	if w > 0 && w < minSize {
+		return true
+	}
+
+	// 候补宽度【或者】高度过小
+	w = stringx.MustNumber[int](s.AttrOr("data-backw", "0"))
+	h = stringx.MustNumber[int](s.AttrOr("data-backh", "0"))
+	if w > 0 && w < minSize || h > 0 && h < minSize {
+		return true
+	}
+
+	return false
+}
+
+// 提取 style 属性中的 width 值
+func extractWidthFromStyle(style string) int {
+	// 正则表达式匹配 width 属性，考虑可能存在的空格
+	re := regexp.MustCompile(`(?i)width\s*:\s*(\d+)(px|%)?`)
+	match := re.FindStringSubmatch(style)
+
+	if strings.Contains(style, "%s") {
+		fmt.Println()
+	}
+	if len(match) < 2 {
+		return 0
+	}
+
+	if hasPercent := len(match) > 2 && match[2] == "%"; hasPercent {
+		return 0
+	}
+
+	// 返回第一个捕获组，即数字部分
+	return stringx.MustNumber[int](match[1])
+}
+
+func saveTestHtml(a *schema.Document) {
+	html := fmt.Sprintf(`
+<style>
+* {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    box-sizing: border-box;
+}
+body {
+    width: 700px;
+	margin: 0 auto;
+    padding: 20px;
+    background-color: antiquewhite;
+}
+.title {
+    font-size: 22px;
+    line-height: 1.4;
+    margin-bottom: 14px;
+    font-weight: 500;
+}
+.text, .image {
+    position: relative;
+    margin-top: 40px;
+    font-size: 16px;
+    font-family: SF Pro Display,-apple-system,BlinkMacSystemFont,Segoe UI,PingFang SC,Hiragino Sans GB,Microsoft YaHei,Helvetica Neue,Helvetica,Arial,sans-serif;
+    font-weight: 400;
+    color: #333;
+    line-height: 40px;
+}
+.image img {
+	max-width: 700px;
+}
+</style>
+<h1 class="title">%s</h1>
+%s`, a.Title, a.Content)
+	_ = os.WriteFile("test.html", []byte(html), 0666)
 }

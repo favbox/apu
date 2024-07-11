@@ -91,6 +91,7 @@ func TestGetArticleKey(t *testing.T) {
 
 	rawURL = "https://mp.weixin.qq.com/s?__biz=MjM5MzcxOTcyMQ==&mid=2651661917&idx=1&sn=4eb32349e238778487de133374017d25&chksm=bc897a3b5cd786861e6520c330279d4bf2e3587b315fdf579f5e332ff1e78b6b1cb163ca850d&scene=132&exptype=timeline_recommend_article_extendread_samebiz&show_related_article=1&subscene=132&scene=132#wechat_redirect"
 	keyInfo, err = weixin.GetArticleKeyInfo(rawURL)
+	assert.Nil(t, err)
 	assert.Equal(t, "MjM5MzcxOTcyMQ==", keyInfo.Biz)
 	assert.Equal(t, "2651661917", keyInfo.Mid)
 	assert.Equal(t, "1", keyInfo.Idx)
@@ -98,10 +99,16 @@ func TestGetArticleKey(t *testing.T) {
 
 func TestGetArticleByURL(t *testing.T) {
 	rawURL := "https://mp.weixin.qq.com/s?__biz=MjM5MzcxOTcyMQ==&mid=2651661917&idx=1&sn=4eb32349e238778487de133374017d25&chksm=bc897a3b5cd786861e6520c330279d4bf2e3587b315fdf579f5e332ff1e78b6b1cb163ca850d&scene=132&exptype=timeline_recommend_article_extendread_samebiz&show_related_article=1&subscene=132&scene=132#wechat_redirect"
+	rawURL = "https://mp.weixin.qq.com/s?__biz=Mzg5MTIxNjQ3NQ==&mid=2247497762&idx=1&sn=03cba3a0de7c845611e438cb2b767f01&chksm=cfd20f16f8a58600baeae765d9aceb4aff469ceca560c9e3ea1fed36a6bf2064c4091070691f#rd"
+	rawURL = "https://mp.weixin.qq.com/s/ya2rYHfsRu0DbOSE3Qb4Ew"
+	rawURL = "https://mp.weixin.qq.com/s/DUpXEV9dCU2DlqpanCHBug"
+	rawURL = "https://mp.weixin.qq.com/s/KXupZGje7CLda_7mdduURQ"
+	rawURL = "https://mp.weixin.qq.com/s/fnnS3j1zKqiTQe3nUcXrvg"
+	rawURL = "https://mp.weixin.qq.com/s/DJC3aejOlmX9llKi4H5Oag"
 	document, err := weixin.GetArticleByURL(rawURL)
 	require.Nil(t, err)
 	for _, img := range document.Images {
-		fmt.Println(img.OriginalUrl)
+		fmt.Println(img.Width, img.Height, img.OriginalUrl)
 	}
 }
 

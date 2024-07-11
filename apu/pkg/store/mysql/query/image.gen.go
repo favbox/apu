@@ -32,7 +32,6 @@ func newImage(db *gorm.DB, opts ...gen.DOOption) image {
 	_image.Source = field.NewInt32(tableName, "source")
 	_image.Key = field.NewUint64(tableName, "key")
 	_image.OriginalURL = field.NewString(tableName, "original_url")
-	_image.Format = field.NewString(tableName, "format")
 	_image.Width = field.NewInt32(tableName, "width")
 	_image.Height = field.NewInt32(tableName, "height")
 	_image.CreateTime = field.NewTime(tableName, "create_time")
@@ -52,7 +51,6 @@ type image struct {
 	Source      field.Int32
 	Key         field.Uint64 // xxhash3(key)
 	OriginalURL field.String
-	Format      field.String
 	Width       field.Int32
 	Height      field.Int32
 	CreateTime  field.Time
@@ -78,7 +76,6 @@ func (i *image) updateTableName(table string) *image {
 	i.Source = field.NewInt32(table, "source")
 	i.Key = field.NewUint64(table, "key")
 	i.OriginalURL = field.NewString(table, "original_url")
-	i.Format = field.NewString(table, "format")
 	i.Width = field.NewInt32(table, "width")
 	i.Height = field.NewInt32(table, "height")
 	i.CreateTime = field.NewTime(table, "create_time")
@@ -99,13 +96,12 @@ func (i *image) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (i *image) fillFieldMap() {
-	i.fieldMap = make(map[string]field.Expr, 10)
+	i.fieldMap = make(map[string]field.Expr, 9)
 	i.fieldMap["id"] = i.ID
 	i.fieldMap["doc_id"] = i.DocID
 	i.fieldMap["source"] = i.Source
 	i.fieldMap["key"] = i.Key
 	i.fieldMap["original_url"] = i.OriginalURL
-	i.fieldMap["format"] = i.Format
 	i.fieldMap["width"] = i.Width
 	i.fieldMap["height"] = i.Height
 	i.fieldMap["create_time"] = i.CreateTime
