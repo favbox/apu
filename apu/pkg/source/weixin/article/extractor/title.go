@@ -3,7 +3,7 @@ package extractor
 import (
 	"regexp"
 
-	"apu/pkg/utils/stringx"
+	"apu/pkg/util/stringx"
 )
 
 // 标题替换规则

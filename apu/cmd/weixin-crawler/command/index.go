@@ -8,9 +8,7 @@ import (
 	"apu/pkg/source/weixin"
 	"apu/pkg/store/mysql"
 	"apu/pkg/store/mysql/model"
-	"apu/pkg/store/mysql/query"
 	"github.com/spf13/cobra"
-	"gorm.io/gorm/clause"
 )
 
 var biz string
@@ -53,30 +51,28 @@ func indexBiz(cmd *cobra.Command, args []string) {
 		}
 		offset += len(articles)
 
-		// 批量保存文章
-		var docs []*model.Document
+		// 批量保存为笔记
+		var notes []*model.Note
 		for i, a := range articles {
 			if a.PublishTime.Unix() < minTimestamp {
 				next = false
 				break
 			}
 			fmt.Println(i+1, a.PublishTime, a.Author, a.Title, a.OriginalUrl)
-			docs = append(docs, &model.Document{
+			notes = append(notes, &model.Note{
+				UID:         a.Key,
 				Source:      int32(schema.Weixin),
-				Key:         a.Key,
-				Author:      a.Author,
+				State:       int32(schema.NoteStateInit),
+				Type:        string(schema.NoteTypeNormal),
 				PublishTime: a.PublishTime,
-				OriginalURL: a.OriginalUrl,
 				Title:       a.Title,
 				Content:     a.Content,
+				AuthorID:    0,
+				OriginalURL: a.OriginalUrl,
 			})
 		}
-		if len(docs) > 0 {
-			err := query.Document.
-				Clauses(clause.OnConflict{
-					DoNothing: true,
-				}).
-				Create(docs...)
+		if len(notes) > 0 {
+			err := mysql.CreateNotesOrSkip(notes)
 			if err != nil {
 				log.Fatal().Err(err).Msg("批量入库失败")
 			}

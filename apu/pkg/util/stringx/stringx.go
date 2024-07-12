@@ -6,7 +6,6 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/bytedance/gopkg/util/xxhash3"
 	"golang.org/x/exp/constraints"
 )
 
@@ -47,11 +46,6 @@ func Replace(str string, re *regexp.Regexp, repl ...string) string {
 	}
 	str = Trim(re.ReplaceAllString(str, r))
 	return str
-}
-
-func HashKey(s string) string {
-	hashString := xxhash3.HashString(s)
-	return fmt.Sprintf("%x", hashString)
 }
 
 type Parseable interface {

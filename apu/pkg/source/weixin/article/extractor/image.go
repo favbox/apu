@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"apu/pkg/schema"
-	"github.com/bytedance/gopkg/util/xxhash3"
+	"apu/pkg/source"
 )
 
 var rePicturePageInfoListJs = regexp.MustCompile(`var picturePageInfoList\s*=\s*"([^"]+)"`)
@@ -54,7 +54,7 @@ func ExtractImages(body []byte) ([]*schema.Image, map[uint64][2]int, error) {
 			Width:       width,
 			Height:      height,
 			OriginalUrl: p.CdnUrl,
-			Key:         xxhash3.HashString(p.CdnUrl),
+			Key:         source.Key(p.CdnUrl),
 		}
 		images = append(images, image)
 		imageSizeMap[image.Key] = [2]int{image.Width, image.Height}

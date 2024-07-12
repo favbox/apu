@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"apu/pkg/utils/stringx"
+	"apu/pkg/util/stringx"
 )
 
 // RuleBreakTextsMap 公众号中断行文本

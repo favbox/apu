@@ -7,7 +7,7 @@ import (
 	"apu/pkg/store/mysql"
 	"apu/pkg/store/mysql/model"
 	"apu/pkg/store/mysql/query"
-	"apu/pkg/utils/cookieutil"
+	"apu/pkg/util/cookiex"
 	"github.com/lqqyt2423/go-mitmproxy/proxy"
 	"gorm.io/gorm/clause"
 )
@@ -32,7 +32,7 @@ func (a *WechatAddon) Response(f *proxy.Flow) {
 
 	// 保存请求头（包含了 可请求阅读量的 appmsg_token 令牌）
 	cookie := f.Request.Header.Get("cookie")
-	cookieMap := cookieutil.StrToMap(cookie)
+	cookieMap := cookiex.StrToMap(cookie)
 	if _, exists := cookieMap["appmsg_token"]; exists {
 		mysql.Init()
 		wxuin := cookieMap["wxuin"]

@@ -18,10 +18,16 @@ func main() {
 	g.UseDB(gormdb)
 
 	g.ApplyBasic(
+		g.GenerateModel("author"),
+		g.GenerateModel("category"),
+		g.GenerateModel("image", gen.FieldType("uid", "uint64")),
+		g.GenerateModel("interact"),
+		g.GenerateModel("note", gen.FieldType("uid", "uint64")),
+		g.GenerateModel("note_category"),
+		g.GenerateModel("note_tag"),
+		g.GenerateModel("tag"),
+		g.GenerateModel("video", gen.FieldType("uid", "uint64")),
 		g.GenerateModel("wexin_request"),
-		g.GenerateModel("document", gen.FieldType("key", "uint64")),
-		g.GenerateModel("image", gen.FieldType("key", "uint64")),
-		g.GenerateModel("interaction", gen.FieldType("key", "uint64")),
 	)
 	g.Execute()
 }

@@ -8,21 +8,20 @@ import (
 	"time"
 )
 
-const TableNameImage = "image"
+const TableNameVideo = "video"
 
-// Image mapped from table <image>
-type Image struct {
+// Video mapped from table <video>
+type Video struct {
 	ID          int64     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	UID         uint64    `gorm:"column:uid;not null" json:"uid"`
+	UID         uint64    `gorm:"column:uid;not null;comment:xxhash3" json:"uid"` // xxhash3
 	NoteID      int64     `gorm:"column:note_id;not null" json:"note_id"`
 	OriginalURL string    `gorm:"column:original_url;not null" json:"original_url"`
 	Width       int32     `gorm:"column:width;not null" json:"width"`
 	Height      int32     `gorm:"column:height;not null" json:"height"`
-	Sort        int32     `gorm:"column:sort;not null" json:"sort"`
-	CreateTime  time.Time `gorm:"column:create_time;not null;default:CURRENT_TIMESTAMP" json:"create_time"`
+	CreateTime  time.Time `gorm:"column:create_time;default:CURRENT_TIMESTAMP" json:"create_time"`
 }
 
-// TableName Image's table name
-func (*Image) TableName() string {
-	return TableNameImage
+// TableName Video's table name
+func (*Video) TableName() string {
+	return TableNameVideo
 }

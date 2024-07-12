@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/bytedance/gopkg/util/xxhash3"
+	"apu/pkg/source"
 )
 
 type KeyInfo struct {
@@ -52,7 +52,7 @@ func GetKeyInfo(canonicalURL string) (*KeyInfo, error) {
 	}
 
 	// 生成唯一键
-	keyInfo.Key = xxhash3.HashString(fmt.Sprintf("%s:%s:%s", keyInfo.Biz, keyInfo.Mid, keyInfo.Idx))
+	keyInfo.Key = source.Key(fmt.Sprintf("%s:%s:%s", keyInfo.Biz, keyInfo.Mid, keyInfo.Idx))
 
 	return keyInfo, nil
 }

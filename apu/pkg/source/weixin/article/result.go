@@ -47,7 +47,7 @@ type (
 		ReadNum         int32 `json:"read_num"`
 		RealReadNum     int   `json:"real_read_num"`
 		Ret             int   `json:"ret"`
-		ShareNum        int   `json:"share_num"`
+		ShareNum        int32 `json:"share_num"`
 		Show            bool  `json:"show"`
 		ShowGray        int   `json:"show_gray"`
 		ShowLike        int   `json:"show_like"`

@@ -1,4 +1,4 @@
-package cookieutil
+package cookiex
 
 import (
 	"fmt"

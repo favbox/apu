@@ -17,26 +17,44 @@ import (
 
 var (
 	Q            = new(Query)
-	Document     *document
+	Author       *author
+	Category     *category
 	Image        *image
-	Interaction  *interaction
+	Interact     *interact
+	Note         *note
+	NoteCategory *noteCategory
+	NoteTag      *noteTag
+	Tag          *tag
+	Video        *video
 	WexinRequest *wexinRequest
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
-	Document = &Q.Document
+	Author = &Q.Author
+	Category = &Q.Category
 	Image = &Q.Image
-	Interaction = &Q.Interaction
+	Interact = &Q.Interact
+	Note = &Q.Note
+	NoteCategory = &Q.NoteCategory
+	NoteTag = &Q.NoteTag
+	Tag = &Q.Tag
+	Video = &Q.Video
 	WexinRequest = &Q.WexinRequest
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
 		db:           db,
-		Document:     newDocument(db, opts...),
+		Author:       newAuthor(db, opts...),
+		Category:     newCategory(db, opts...),
 		Image:        newImage(db, opts...),
-		Interaction:  newInteraction(db, opts...),
+		Interact:     newInteract(db, opts...),
+		Note:         newNote(db, opts...),
+		NoteCategory: newNoteCategory(db, opts...),
+		NoteTag:      newNoteTag(db, opts...),
+		Tag:          newTag(db, opts...),
+		Video:        newVideo(db, opts...),
 		WexinRequest: newWexinRequest(db, opts...),
 	}
 }
@@ -44,9 +62,15 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 type Query struct {
 	db *gorm.DB
 
-	Document     document
+	Author       author
+	Category     category
 	Image        image
-	Interaction  interaction
+	Interact     interact
+	Note         note
+	NoteCategory noteCategory
+	NoteTag      noteTag
+	Tag          tag
+	Video        video
 	WexinRequest wexinRequest
 }
 
@@ -55,9 +79,15 @@ func (q *Query) Available() bool { return q.db != nil }
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
 		db:           db,
-		Document:     q.Document.clone(db),
+		Author:       q.Author.clone(db),
+		Category:     q.Category.clone(db),
 		Image:        q.Image.clone(db),
-		Interaction:  q.Interaction.clone(db),
+		Interact:     q.Interact.clone(db),
+		Note:         q.Note.clone(db),
+		NoteCategory: q.NoteCategory.clone(db),
+		NoteTag:      q.NoteTag.clone(db),
+		Tag:          q.Tag.clone(db),
+		Video:        q.Video.clone(db),
 		WexinRequest: q.WexinRequest.clone(db),
 	}
 }
@@ -73,25 +103,43 @@ func (q *Query) WriteDB() *Query {
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
 		db:           db,
-		Document:     q.Document.replaceDB(db),
+		Author:       q.Author.replaceDB(db),
+		Category:     q.Category.replaceDB(db),
 		Image:        q.Image.replaceDB(db),
-		Interaction:  q.Interaction.replaceDB(db),
+		Interact:     q.Interact.replaceDB(db),
+		Note:         q.Note.replaceDB(db),
+		NoteCategory: q.NoteCategory.replaceDB(db),
+		NoteTag:      q.NoteTag.replaceDB(db),
+		Tag:          q.Tag.replaceDB(db),
+		Video:        q.Video.replaceDB(db),
 		WexinRequest: q.WexinRequest.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	Document     IDocumentDo
+	Author       IAuthorDo
+	Category     ICategoryDo
 	Image        IImageDo
-	Interaction  IInteractionDo
+	Interact     IInteractDo
+	Note         INoteDo
+	NoteCategory INoteCategoryDo
+	NoteTag      INoteTagDo
+	Tag          ITagDo
+	Video        IVideoDo
 	WexinRequest IWexinRequestDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		Document:     q.Document.WithContext(ctx),
+		Author:       q.Author.WithContext(ctx),
+		Category:     q.Category.WithContext(ctx),
 		Image:        q.Image.WithContext(ctx),
-		Interaction:  q.Interaction.WithContext(ctx),
+		Interact:     q.Interact.WithContext(ctx),
+		Note:         q.Note.WithContext(ctx),
+		NoteCategory: q.NoteCategory.WithContext(ctx),
+		NoteTag:      q.NoteTag.WithContext(ctx),
+		Tag:          q.Tag.WithContext(ctx),
+		Video:        q.Video.WithContext(ctx),
 		WexinRequest: q.WexinRequest.WithContext(ctx),
 	}
 }

@@ -29,7 +29,6 @@ var rootCmd = &cobra.Command{
 func init() {
 	rootCmd.Flags().StringVarP(&addr, "addr", "a", ":9090", "")
 
-	addr = ":9090"
 	log = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).
 		Level(func() zerolog.Level {
 			if os.Getenv("DEBUG") != "" {

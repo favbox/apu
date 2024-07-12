@@ -12,13 +12,13 @@ import (
 	"unicode/utf8"
 
 	"apu/pkg/schema"
+	"apu/pkg/source"
 	"apu/pkg/source/weixin/article/extractor"
-	"apu/pkg/store/mysql/query"
-	"apu/pkg/utils/cookieutil"
-	"apu/pkg/utils/stringx"
+	"apu/pkg/store/mysql"
+	"apu/pkg/util/cookiex"
+	"apu/pkg/util/stringx"
 	md "github.com/JohannesKaufmann/html-to-markdown"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/bytedance/gopkg/util/xxhash3"
 	"github.com/imroc/req/v3"
 	"github.com/rs/zerolog/log"
 	"github.com/yuin/goldmark"
@@ -32,11 +32,7 @@ func GetArticles(bookId string, count, offset, syncKey int) ([]*schema.Document,
 	limiterBySecond1.Take()
 
 	// 获取微信读书请求头
-	//mysql.Init()
-	wexinRequest, err := query.WexinRequest.Where(
-		query.WexinRequest.Type.Eq("weread"),
-		query.WexinRequest.Status.Eq("valid"),
-	).First()
+	wexinRequest, err := mysql.FetchWexinRequest("weread", "valid")
 	if err != nil {
 		return nil, 0, err
 	}
@@ -115,11 +111,7 @@ func GetStat(biz, mid, idx, sn string) (*Stat, error) {
 	limiterBySecond3.Take()
 
 	// 获取微信阅读量请求 cookie
-	//mysql.Init()
-	wexinRequest, err := query.WexinRequest.Where(
-		query.WexinRequest.Type.Eq("wechat"),
-		query.WexinRequest.Status.Eq("valid"),
-	).First()
+	wexinRequest, err := mysql.FetchWexinRequest("wechat", "valid")
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +119,7 @@ func GetStat(biz, mid, idx, sn string) (*Stat, error) {
 	request := req.R()
 
 	// 设置查询参数
-	cookieMap := cookieutil.StrToMap(wexinRequest.Cookie)
+	cookieMap := cookiex.StrToMap(wexinRequest.Cookie)
 	request.SetQueryParams(map[string]string{
 		"appmsg_token": cookieMap["appmsg_token"],
 		"x5":           "0",
@@ -169,7 +161,7 @@ func GetStat(biz, mid, idx, sn string) (*Stat, error) {
 		return nil, errors.New("基础响应码为 301")
 	}
 	if result.ArticleStat == nil {
-		return nil, errors.New("当前无法获取阅读量")
+		return nil, errors.New("appmsgstat为空")
 	}
 
 	return result.ArticleStat, nil
@@ -264,19 +256,20 @@ func GetArticle(rawURL string) (*schema.Document, error) {
 	)
 	jsContent := gq.Find("#js_content")
 	jsContent.Find("*").Each(func(i int, s *goquery.Selection) {
-		// 移除裁剪线以后的所有元素
+		// 移除中断索引之后的所有元素
 		if breakIndex > 0 && i > breakIndex {
 			s.Remove()
 			return
 		}
 
-		// 移除所有链接🔗的 href 和 target
+		// 处理链接
 		if s.Is("a") {
-			// 移除内部链接
+			// 移除内链
 			if v, exists := s.Attr("tab"); exists && v == "innerlink" {
 				s.Remove()
 				return
 			}
+			// 移除链接属性
 			s.RemoveAttr("target").RemoveAttr("href")
 			return
 		}
@@ -299,40 +292,34 @@ func GetArticle(rawURL string) (*schema.Document, error) {
 			imgSrc := s.AttrOr("data-src", s.AttrOr("src", ""))
 			s.SetAttr("src", imgSrc).RemoveAttr("data-src")
 
-			if strings.Contains(imgSrc, "icyksg9whhyvcIb5Dz2Zia2lxuwmELLQ1oPGpOYWoFjR1MaVsiabb78ZloJ9eRyeVDL3mxIRoegwnyiblXeiaHice1tw") {
-				fmt.Println()
-			}
-			// 判断是否为图片中断标志位
+			// 处理中断图片
 			if isBreakImage(imgSrc) {
 				breakIndex = i
 				s.Remove()
 				return
 			}
 
-			// 删除过小的图片
-			imgKey := xxhash3.HashString(imgSrc)
+			// 删除小图
+			imgKey := source.Key(imgSrc)
 			imgSize := imageSizeMap[imgKey]
 			if isSmallImage(s, imgSize) {
 				s.Remove()
 				return
 			}
 
-			//modules = append(modules, fmt.Sprintf(`<img src="%s" />`, imgSrc))
-
 			imageCount++
 			return
 		}
 
+		// 移除单字符文本行
 		text := stringx.Trim(s.Text())
-
-		// 移除单个字符的文本行
 		textNum := utf8.RuneCountInString(text)
 		if textNum == 1 {
 			s.Remove()
 			return
 		}
 
-		// 判断是否为中断标志位
+		// 处理中断文本或可移除文本
 		if textNum > 1 && textNum < 50 {
 			if isBreakTextLine(mpName, text) {
 				breakIndex = i
