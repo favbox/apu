@@ -99,13 +99,14 @@ func TestGetArticleKey(t *testing.T) {
 
 func TestGetArticleByURL(t *testing.T) {
 	rawURL := "https://mp.weixin.qq.com/s?__biz=MjM5MzcxOTcyMQ==&mid=2651661917&idx=1&sn=4eb32349e238778487de133374017d25&chksm=bc897a3b5cd786861e6520c330279d4bf2e3587b315fdf579f5e332ff1e78b6b1cb163ca850d&scene=132&exptype=timeline_recommend_article_extendread_samebiz&show_related_article=1&subscene=132&scene=132#wechat_redirect"
-	rawURL = "https://mp.weixin.qq.com/s?__biz=Mzg5MTIxNjQ3NQ==&mid=2247497762&idx=1&sn=03cba3a0de7c845611e438cb2b767f01&chksm=cfd20f16f8a58600baeae765d9aceb4aff469ceca560c9e3ea1fed36a6bf2064c4091070691f#rd"
-	rawURL = "https://mp.weixin.qq.com/s/ya2rYHfsRu0DbOSE3Qb4Ew"
-	rawURL = "https://mp.weixin.qq.com/s/DUpXEV9dCU2DlqpanCHBug"
+	//rawURL = "https://mp.weixin.qq.com/s?__biz=Mzg5MTIxNjQ3NQ==&mid=2247497762&idx=1&sn=03cba3a0de7c845611e438cb2b767f01&chksm=cfd20f16f8a58600baeae765d9aceb4aff469ceca560c9e3ea1fed36a6bf2064c4091070691f#rd"
+	//rawURL = "https://mp.weixin.qq.com/s/ya2rYHfsRu0DbOSE3Qb4Ew"
+	//rawURL = "https://mp.weixin.qq.com/s/DUpXEV9dCU2DlqpanCHBug"
 	//rawURL = "https://mp.weixin.qq.com/s/KXupZGje7CLda_7mdduURQ"
 	//rawURL = "https://mp.weixin.qq.com/s/fnnS3j1zKqiTQe3nUcXrvg"
 	//rawURL = "https://mp.weixin.qq.com/s/DJC3aejOlmX9llKi4H5Oag"
 	//rawURL = "https://mp.weixin.qq.com/s?__biz=MzA4NjAyNjAzMw==&mid=2651132177&idx=1&sn=8c0d49e60ebf05ee1c180286922371f0&chksm=843f434fb348ca59e66c6458a80531d207409a495338fc762cdf50534b3e765f916947e6a53c&scene=58&subscene=0#rd"
+	rawURL = "https://mp.weixin.qq.com/s/r2TqMPZnY0wO7Cv07l8QfA"
 	document, err := weixin.GetArticleByURL(rawURL)
 	require.Nil(t, err)
 	for i, img := range document.Images {
