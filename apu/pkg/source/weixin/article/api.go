@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -84,7 +85,7 @@ func GetArticles(bookId string, count, offset, syncKey int) ([]*schema.Document,
 		articles = append(articles, &schema.Document{
 			Source:      schema.Weixin,
 			Key:         keyInfo.Key,
-			Author:      keyInfo.Biz,
+			Author:      a.MpName,
 			PublishTime: time.Unix(a.Time, 0),
 			OriginalUrl: a.DocUrl,
 			Title:       a.Title,
@@ -221,12 +222,19 @@ func GetArticle(rawURL string) (*schema.Document, error) {
 		return nil, err
 	}
 
+	// 提取描述文本
+	description := gq.Find("meta[property='og:description']").AttrOr("content", "")
+	description = strings.ReplaceAll(description, `\x0d`, "")       // \r
+	description = strings.ReplaceAll(description, `\x0a`, "<br>")   // \n
+	description = strings.ReplaceAll(description, `\x20`, "&nbsp;") // 空格
+
 	// 构建初始文档
 	article := &schema.Document{
 		Source:      schema.Weixin,
 		Key:         keyInfo.Key,
 		Author:      keyInfo.Biz,
 		OriginalUrl: keyInfo.Url,
+		Content:     description,
 	}
 
 	// 提取发布时间
@@ -242,116 +250,152 @@ func GetArticle(rawURL string) (*schema.Document, error) {
 	)
 
 	// 提取图片列表
+	var keepedImageSrcs []string
 	images, imageSizeMap, err := extractor.ExtractImages(body)
 	if err != nil {
 		return nil, err
+	} else if len(images) == 0 {
+		return nil, errors.New("无法提取文中图片页面信息列表，请检查文档是否包含 var picturePageInfoList 或 window.picture_page_info_list")
 	}
-	article.Images = images
 
 	// 提取正文
-	var (
-		imageCount = 0
-		breakIndex = -1 // 裁剪线的索引
-		//modules    []string
-	)
-	jsContent := gq.Find("#js_content")
-	jsContent.Find("*").Each(func(i int, s *goquery.Selection) {
-		// 移除中断索引之后的所有元素
-		if breakIndex > 0 && i > breakIndex {
-			s.Remove()
-			return
-		}
-
-		// 处理链接
-		if s.Is("a") {
-			// 移除内链
-			if v, exists := s.Attr("tab"); exists && v == "innerlink" {
-				s.Remove()
-				return
-			}
-			// 移除链接属性
-			s.RemoveAttr("target").RemoveAttr("href")
-			return
-		}
-
-		// 移除 svg
-		if s.Is("svg") {
-			s.Remove()
-			return
-		}
-
-		// 移除冗余图片
-		if s.Is("img") {
-			// 移除跳转链接的图片
-			if _, exists := s.Parent().Attr("js_jump_icon"); exists {
+	if bytes.Contains(body, []byte("window.is_new_img = 1;")) {
+		// 新图文消息
+		article.Images = images
+	} else {
+		// 老图文消息
+		var (
+			imageCount = 0
+			breakIndex = -1 // 裁剪线的索引
+			//modules    []string
+		)
+		jsContent := gq.Find("#js_content")
+		jsContent.Find("*").Each(func(i int, s *goquery.Selection) {
+			// 移除中断索引之后的所有元素
+			if breakIndex > 0 && i > breakIndex {
 				s.Remove()
 				return
 			}
 
-			// 重置 src 以便 markdown 正确解析
-			imgSrc := s.AttrOr("data-src", s.AttrOr("src", ""))
-			s.SetAttr("src", imgSrc).RemoveAttr("data-src")
+			// 处理链接
+			if s.Is("a") {
+				// 移除内链
+				if v, exists := s.Attr("tab"); exists && v == "innerlink" {
+					s.Remove()
+					return
+				}
+				// 移除链接属性
+				s.RemoveAttr("target").RemoveAttr("href")
+				return
+			}
 
-			// 处理中断图片
-			if isBreakImage(imgSrc) {
-				breakIndex = i
+			// 移除 svg
+			if s.Is("svg") {
 				s.Remove()
 				return
 			}
 
-			// 删除小图
-			imgKey := source.Key(imgSrc)
-			imgSize := imageSizeMap[imgKey]
-			if isSmallImage(s, imgSize) {
+			// 移除冗余图片
+			if s.Is("img") {
+				// 移除跳转链接的图片
+				if _, exists := s.Parent().Attr("js_jump_icon"); exists {
+					s.Remove()
+					return
+				}
+
+				// 重置 src 以便 markdown 正确解析
+				imgSrc := s.AttrOr("data-src", s.AttrOr("src", ""))
+				s.SetAttr("src", imgSrc).RemoveAttr("data-src")
+
+				// 处理中断图片
+				if isBreakImage(imgSrc) {
+					breakIndex = i
+					s.Remove()
+					return
+				}
+
+				// 删除小图
+				imgKey := source.Key(imgSrc)
+				imgSize := imageSizeMap[imgKey]
+				if isSmallImage(s, imgSize) {
+					s.Remove()
+					return
+				}
+
+				imageCount++
+				return
+			}
+
+			// 移除单字符文本行
+			text := stringx.Trim(s.Text())
+			textNum := utf8.RuneCountInString(text)
+			if textNum == 1 {
 				s.Remove()
 				return
 			}
 
-			imageCount++
-			return
+			// 处理中断文本或可移除文本
+			if textNum > 1 && textNum < 50 {
+				if isBreakTextLine(mpName, text) {
+					breakIndex = i
+					s.Remove()
+					return
+				}
+				if isRemovableTextLine(mpName, text) {
+					s.Remove()
+					return
+				}
+			}
+		})
+
+		// goquery -> markdown
+		start := time.Now()
+		converter := md.NewConverter("", true, nil)
+		mdContent := converter.Convert(jsContent)
+		log.Debug().Dur("耗时", time.Since(start)).Msg("goquery -> markdown")
+
+		// markdown -> html buffer
+		start = time.Now()
+		buf := bytes.NewBuffer(nil)
+		err = goldmark.Convert([]byte(mdContent), buf)
+		log.Debug().Dur("耗时", time.Since(start)).Msg("markdown -> html")
+		if err != nil {
+			return nil, err
 		}
 
-		// 移除单字符文本行
-		text := stringx.Trim(s.Text())
-		textNum := utf8.RuneCountInString(text)
-		if textNum == 1 {
-			s.Remove()
-			return
+		// replace to div
+		doc, err := goquery.NewDocumentFromReader(bytes.NewReader(replaceToDivWithClass(buf.Bytes())))
+		if err != nil {
+			return nil, err
 		}
 
-		// 处理中断文本或可移除文本
-		if textNum > 1 && textNum < 50 {
-			if isBreakTextLine(mpName, text) {
-				breakIndex = i
-				s.Remove()
-				return
+		// 构建文本行
+		var texts []string
+		doc.Find("*").Each(func(i int, s *goquery.Selection) {
+			isText := s.HasClass("text")
+			if isText {
+				text := s.Text()
+				if !stringx.HasChinese(text) {
+					return
+				}
+				texts = append(texts, s.Text()+"<br><br>")
 			}
-			if isRemovableTextLine(mpName, text) {
-				s.Remove()
-				return
+			if s.Is("img") {
+				imgSrc := s.AttrOr("src", "")
+				if len(imgSrc) > 0 {
+					keepedImageSrcs = append(keepedImageSrcs, imgSrc)
+				}
+			}
+		})
+
+		for _, img := range images {
+			if slices.Contains(keepedImageSrcs, img.OriginalUrl) {
+				article.Images = append(article.Images, img)
 			}
 		}
-	})
 
-	// goquery -> markdown
-	start := time.Now()
-	converter := md.NewConverter("", true, nil)
-	mdContent := converter.Convert(jsContent)
-	log.Debug().Dur("耗时", time.Since(start)).Msg("goquery -> markdown")
-	//article.Content = jsContent.Text()
-
-	// markdown -> html buffer
-	start = time.Now()
-	buf := bytes.NewBuffer(nil)
-	err = goldmark.Convert([]byte(mdContent), buf)
-	log.Debug().Dur("耗时", time.Since(start)).Msg("markdown -> html")
-	if err != nil {
-		return nil, err
+		article.Content = strings.Join(texts, "\n")
 	}
-
-	article.Content = buf.String()
-	//article.Content, _ = jsContent.Html()
-	//article.Content = strings.Join(modules, "<br />")
 
 	// 保存测试文件
 	saveTestHtml(article)
@@ -444,6 +488,27 @@ func extractWidthFromStyle(style string) int {
 
 	// 返回第一个捕获组，即数字部分
 	return stringx.MustNumber[int](match[1])
+}
+
+// replaceToDivWithClass p 标签按情况替换为 div.image 和 div.text
+func replaceToDivWithClass(htmlBuf []byte) []byte {
+	// 将 <img> 上级的 <p> 标签替换为 <div class="img">
+	htmlBuf = bytes.ReplaceAll(htmlBuf, []byte("<p><img"), []byte("<div class=\"image\"><img"))
+	htmlBuf = bytes.ReplaceAll(htmlBuf, []byte("</img></p>"), []byte("</img></div>"))
+
+	// 将剩余文本上级的 <p> 标签替换为 <div class="txt">
+	htmlBuf = bytes.ReplaceAll(htmlBuf, []byte("<p>"), []byte("<div class=\"text\">"))
+	htmlBuf = bytes.ReplaceAll(htmlBuf, []byte("</p>"), []byte("</div>"))
+
+	// 将剩余文本上级的 <h2> 标签替换为 <div class="txt">
+	htmlBuf = bytes.ReplaceAll(htmlBuf, []byte("<h1>"), []byte("<div class=\"text h1\">"))
+	htmlBuf = bytes.ReplaceAll(htmlBuf, []byte("</h1>"), []byte("</div>"))
+	htmlBuf = bytes.ReplaceAll(htmlBuf, []byte("<h2>"), []byte("<div class=\"text h2\">"))
+	htmlBuf = bytes.ReplaceAll(htmlBuf, []byte("</h2>"), []byte("</div>"))
+	htmlBuf = bytes.ReplaceAll(htmlBuf, []byte("<h3>"), []byte("<div class=\"text h3\">"))
+	htmlBuf = bytes.ReplaceAll(htmlBuf, []byte("</h3>"), []byte("</div>"))
+
+	return htmlBuf
 }
 
 func saveTestHtml(a *schema.Document) {

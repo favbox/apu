@@ -13,9 +13,9 @@ type Document struct {
 	PublishTime time.Time
 	OriginalUrl string
 	Title       string
-	Content     string
 
-	Images []*Image
+	Content string
+	Images  []*Image
 }
 
 var (

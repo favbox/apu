@@ -67,3 +67,13 @@ func MustNumber[T constraints.Float | constraints.Integer](s string) T {
 	}
 	return n
 }
+
+// HasChinese 判断文本中是否有汉字。
+func HasChinese(text string) bool {
+	for _, r := range text {
+		if unicode.Is(unicode.Scripts["Han"], r) {
+			return true
+		}
+	}
+	return false
+}
