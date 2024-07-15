@@ -11,7 +11,7 @@ type NoteTag struct {
 	ID     int64 `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	NoteID int64 `gorm:"column:note_id;not null" json:"note_id"`
 	TagID  int64 `gorm:"column:tag_id;not null" json:"tag_id"`
-	Sort   int32 `gorm:"column:sort;not null" json:"sort"`
+	Sort   int   `gorm:"column:sort;not null" json:"sort"`
 }
 
 // TableName NoteTag's table name

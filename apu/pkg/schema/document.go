@@ -7,9 +7,10 @@ import (
 // Document 是与文档交互的接口。
 type Document struct {
 	Source
-	Key uint64
+	UID uint64
 
-	Author      string
+	Metadata map[string]any
+
 	PublishTime time.Time
 	OriginalUrl string
 	Title       string
@@ -19,9 +20,9 @@ type Document struct {
 }
 
 var (
-	DocumentStageInit       int32 = 0
-	DocumentStageStated     int32 = 1
-	DocumentStageDetailed   int32 = 2
-	DocumentStageStructured int32 = 3
-	DocumentStageEmbedded   int32 = 4
+	DocumentStageInit       = 0
+	DocumentStageStated     = 1
+	DocumentStageDetailed   = 2
+	DocumentStageStructured = 3
+	DocumentStageEmbedded   = 4
 )

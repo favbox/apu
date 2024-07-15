@@ -29,13 +29,21 @@ func RemoveAllSpace(s string) string {
 }
 
 // ReduceEmptyLines 缩减空白行。
-func ReduceEmptyLines(input string) string {
-	// 使用正则表达式匹配两个及以上连续的空行
-	pattern := regexp.MustCompile(`\n{2,}`)
+func ReduceEmptyLines(input string, n ...int) string {
+	num := 3
+	if len(n) > 0 {
+		num = n[0]
+	}
+	if num < 1 {
+		num = 1
+	}
+
+	// 使用正则表达式匹配3个及以上连续的空行
+	pattern := regexp.MustCompile(fmt.Sprintf(`\n{%d,}`, num))
 	// 使用 ReplaceAllString 方法将匹配到的连续空行替换为一个换行符
-	output := pattern.ReplaceAllString(input, "\n")
+	output := pattern.ReplaceAllString(input, strings.Repeat("\n", num-1))
 	// 返回处理后的结果
-	return output
+	return strings.TrimSpace(output)
 }
 
 // Replace 使用正则替换字符串。
@@ -76,4 +84,22 @@ func HasChinese(text string) bool {
 		}
 	}
 	return false
+}
+
+// Cut 裁剪字符串
+func Cut(s string, length int) string {
+	var count int
+	var result []rune
+	for _, r := range s {
+		if count >= length {
+			break
+		}
+		if unicode.Is(unicode.Han, r) {
+			count += 2
+		} else {
+			count++
+		}
+		result = append(result, r)
+	}
+	return string(result)
 }

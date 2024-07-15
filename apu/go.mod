@@ -11,8 +11,8 @@ require (
 	github.com/imroc/req/v3 v3.43.7
 	github.com/lqqyt2423/go-mitmproxy v1.8.5
 	github.com/rs/zerolog v1.33.0
-	github.com/russross/blackfriday/v2 v2.1.0
 	github.com/spf13/cobra v1.8.1
+	github.com/sqids/sqids-go v0.4.1
 	github.com/stretchr/testify v1.9.0
 	github.com/tmc/langchaingo v0.1.12
 	github.com/yuin/goldmark v1.7.1

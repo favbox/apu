@@ -13,10 +13,11 @@ const TableNameAuthor = "author"
 // Author mapped from table <author>
 type Author struct {
 	ID         int64     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
-	Source     int32     `gorm:"column:source;not null" json:"source"`
+	Source     int       `gorm:"column:source;not null" json:"source"`
+	UID        int64     `gorm:"column:uid;not null" json:"uid"`
 	Nickname   string    `gorm:"column:nickname;not null" json:"nickname"`
-	Avatar     string    `gorm:"column:avatar;not null" json:"avatar"`
 	CreateTime time.Time `gorm:"column:create_time;not null;default:CURRENT_TIMESTAMP" json:"create_time"`
+	UpdateTime time.Time `gorm:"column:update_time;not null;default:CURRENT_TIMESTAMP" json:"update_time"`
 }
 
 // TableName Author's table name

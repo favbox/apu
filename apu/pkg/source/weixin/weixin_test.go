@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"apu/pkg/source/weixin"
 	"apu/pkg/store/mysql"
@@ -107,11 +108,14 @@ func TestGetArticleByURL(t *testing.T) {
 	//rawURL = "https://mp.weixin.qq.com/s/DJC3aejOlmX9llKi4H5Oag"
 	//rawURL = "https://mp.weixin.qq.com/s?__biz=MzA4NjAyNjAzMw==&mid=2651132177&idx=1&sn=8c0d49e60ebf05ee1c180286922371f0&chksm=843f434fb348ca59e66c6458a80531d207409a495338fc762cdf50534b3e765f916947e6a53c&scene=58&subscene=0#rd"
 	rawURL = "https://mp.weixin.qq.com/s/r2TqMPZnY0wO7Cv07l8QfA"
-	document, err := weixin.GetArticleByURL(rawURL)
+	rawURL = "https://mp.weixin.qq.com/s/WnGKB9j4-CGyqdX70kl7XA"
+	rawURL = "https://mp.weixin.qq.com/s?__biz=MjM5MzcxOTcyMQ==&mid=2651654837&idx=1&sn=077aea1dac9f3a25ae3c0b006c47e82e&chksm=bd6b1e738a1c9765115c478c4c0fc8bb6f554a0ad2247cd417e56ec6062d7bdd7bfd8c6a0170&scene=58&subscene=0#rd"
+	a, err := weixin.GetArticleByURL(rawURL)
 	require.Nil(t, err)
-	for i, img := range document.Images {
-		fmt.Println(i+1, img.Width, img.Height, img.OriginalUrl)
+	for i, img := range a.Images {
+		fmt.Println(i+1, img.UID, img.Width, img.Height, img.OriginalUrl)
 	}
+	fmt.Println(a.UID, a.Source, a.PublishTime, a.Title, utf8.RuneCountInString(a.Content), a.OriginalUrl)
 }
 
 func TestLimiter(t *testing.T) {

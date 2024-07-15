@@ -16,17 +16,20 @@ import (
 )
 
 var (
-	Q            = new(Query)
-	Author       *author
-	Category     *category
-	Image        *image
-	Interact     *interact
-	Note         *note
-	NoteCategory *noteCategory
-	NoteTag      *noteTag
-	Tag          *tag
-	Video        *video
-	WexinRequest *wexinRequest
+	Q             = new(Query)
+	Author        *author
+	Category      *category
+	Image         *image
+	Interact      *interact
+	Note          *note
+	NoteCategory  *noteCategory
+	NoteContent   *noteContent
+	NoteTag       *noteTag
+	Pipeline      *pipeline
+	Tag           *tag
+	Video         *video
+	WeixinMp      *weixinMp
+	WeixinRequest *weixinRequest
 )
 
 func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
@@ -37,58 +40,70 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	Interact = &Q.Interact
 	Note = &Q.Note
 	NoteCategory = &Q.NoteCategory
+	NoteContent = &Q.NoteContent
 	NoteTag = &Q.NoteTag
+	Pipeline = &Q.Pipeline
 	Tag = &Q.Tag
 	Video = &Q.Video
-	WexinRequest = &Q.WexinRequest
+	WeixinMp = &Q.WeixinMp
+	WeixinRequest = &Q.WeixinRequest
 }
 
 func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 	return &Query{
-		db:           db,
-		Author:       newAuthor(db, opts...),
-		Category:     newCategory(db, opts...),
-		Image:        newImage(db, opts...),
-		Interact:     newInteract(db, opts...),
-		Note:         newNote(db, opts...),
-		NoteCategory: newNoteCategory(db, opts...),
-		NoteTag:      newNoteTag(db, opts...),
-		Tag:          newTag(db, opts...),
-		Video:        newVideo(db, opts...),
-		WexinRequest: newWexinRequest(db, opts...),
+		db:            db,
+		Author:        newAuthor(db, opts...),
+		Category:      newCategory(db, opts...),
+		Image:         newImage(db, opts...),
+		Interact:      newInteract(db, opts...),
+		Note:          newNote(db, opts...),
+		NoteCategory:  newNoteCategory(db, opts...),
+		NoteContent:   newNoteContent(db, opts...),
+		NoteTag:       newNoteTag(db, opts...),
+		Pipeline:      newPipeline(db, opts...),
+		Tag:           newTag(db, opts...),
+		Video:         newVideo(db, opts...),
+		WeixinMp:      newWeixinMp(db, opts...),
+		WeixinRequest: newWeixinRequest(db, opts...),
 	}
 }
 
 type Query struct {
 	db *gorm.DB
 
-	Author       author
-	Category     category
-	Image        image
-	Interact     interact
-	Note         note
-	NoteCategory noteCategory
-	NoteTag      noteTag
-	Tag          tag
-	Video        video
-	WexinRequest wexinRequest
+	Author        author
+	Category      category
+	Image         image
+	Interact      interact
+	Note          note
+	NoteCategory  noteCategory
+	NoteContent   noteContent
+	NoteTag       noteTag
+	Pipeline      pipeline
+	Tag           tag
+	Video         video
+	WeixinMp      weixinMp
+	WeixinRequest weixinRequest
 }
 
 func (q *Query) Available() bool { return q.db != nil }
 
 func (q *Query) clone(db *gorm.DB) *Query {
 	return &Query{
-		db:           db,
-		Author:       q.Author.clone(db),
-		Category:     q.Category.clone(db),
-		Image:        q.Image.clone(db),
-		Interact:     q.Interact.clone(db),
-		Note:         q.Note.clone(db),
-		NoteCategory: q.NoteCategory.clone(db),
-		NoteTag:      q.NoteTag.clone(db),
-		Tag:          q.Tag.clone(db),
-		Video:        q.Video.clone(db),
-		WexinRequest: q.WexinRequest.clone(db),
+		db:            db,
+		Author:        q.Author.clone(db),
+		Category:      q.Category.clone(db),
+		Image:         q.Image.clone(db),
+		Interact:      q.Interact.clone(db),
+		Note:          q.Note.clone(db),
+		NoteCategory:  q.NoteCategory.clone(db),
+		NoteContent:   q.NoteContent.clone(db),
+		NoteTag:       q.NoteTag.clone(db),
+		Pipeline:      q.Pipeline.clone(db),
+		Tag:           q.Tag.clone(db),
+		Video:         q.Video.clone(db),
+		WeixinMp:      q.WeixinMp.clone(db),
+		WeixinRequest: q.WeixinRequest.clone(db),
 	}
 }
 
@@ -102,45 +117,54 @@ func (q *Query) WriteDB() *Query {
 
 func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 	return &Query{
-		db:           db,
-		Author:       q.Author.replaceDB(db),
-		Category:     q.Category.replaceDB(db),
-		Image:        q.Image.replaceDB(db),
-		Interact:     q.Interact.replaceDB(db),
-		Note:         q.Note.replaceDB(db),
-		NoteCategory: q.NoteCategory.replaceDB(db),
-		NoteTag:      q.NoteTag.replaceDB(db),
-		Tag:          q.Tag.replaceDB(db),
-		Video:        q.Video.replaceDB(db),
-		WexinRequest: q.WexinRequest.replaceDB(db),
+		db:            db,
+		Author:        q.Author.replaceDB(db),
+		Category:      q.Category.replaceDB(db),
+		Image:         q.Image.replaceDB(db),
+		Interact:      q.Interact.replaceDB(db),
+		Note:          q.Note.replaceDB(db),
+		NoteCategory:  q.NoteCategory.replaceDB(db),
+		NoteContent:   q.NoteContent.replaceDB(db),
+		NoteTag:       q.NoteTag.replaceDB(db),
+		Pipeline:      q.Pipeline.replaceDB(db),
+		Tag:           q.Tag.replaceDB(db),
+		Video:         q.Video.replaceDB(db),
+		WeixinMp:      q.WeixinMp.replaceDB(db),
+		WeixinRequest: q.WeixinRequest.replaceDB(db),
 	}
 }
 
 type queryCtx struct {
-	Author       IAuthorDo
-	Category     ICategoryDo
-	Image        IImageDo
-	Interact     IInteractDo
-	Note         INoteDo
-	NoteCategory INoteCategoryDo
-	NoteTag      INoteTagDo
-	Tag          ITagDo
-	Video        IVideoDo
-	WexinRequest IWexinRequestDo
+	Author        IAuthorDo
+	Category      ICategoryDo
+	Image         IImageDo
+	Interact      IInteractDo
+	Note          INoteDo
+	NoteCategory  INoteCategoryDo
+	NoteContent   INoteContentDo
+	NoteTag       INoteTagDo
+	Pipeline      IPipelineDo
+	Tag           ITagDo
+	Video         IVideoDo
+	WeixinMp      IWeixinMpDo
+	WeixinRequest IWeixinRequestDo
 }
 
 func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
-		Author:       q.Author.WithContext(ctx),
-		Category:     q.Category.WithContext(ctx),
-		Image:        q.Image.WithContext(ctx),
-		Interact:     q.Interact.WithContext(ctx),
-		Note:         q.Note.WithContext(ctx),
-		NoteCategory: q.NoteCategory.WithContext(ctx),
-		NoteTag:      q.NoteTag.WithContext(ctx),
-		Tag:          q.Tag.WithContext(ctx),
-		Video:        q.Video.WithContext(ctx),
-		WexinRequest: q.WexinRequest.WithContext(ctx),
+		Author:        q.Author.WithContext(ctx),
+		Category:      q.Category.WithContext(ctx),
+		Image:         q.Image.WithContext(ctx),
+		Interact:      q.Interact.WithContext(ctx),
+		Note:          q.Note.WithContext(ctx),
+		NoteCategory:  q.NoteCategory.WithContext(ctx),
+		NoteContent:   q.NoteContent.WithContext(ctx),
+		NoteTag:       q.NoteTag.WithContext(ctx),
+		Pipeline:      q.Pipeline.WithContext(ctx),
+		Tag:           q.Tag.WithContext(ctx),
+		Video:         q.Video.WithContext(ctx),
+		WeixinMp:      q.WeixinMp.WithContext(ctx),
+		WeixinRequest: q.WeixinRequest.WithContext(ctx),
 	}
 }
 

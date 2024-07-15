@@ -51,14 +51,14 @@ func ExtractImages(body []byte) ([]*schema.Image, map[uint64][2]int, error) {
 		width, _ := strconv.Atoi(p.Width)
 		height, _ := strconv.Atoi(p.Height)
 		image := &schema.Image{
-			Source:      schema.Weixin,
+			Source:      schema.SourceWeixin.Int(),
 			Width:       width,
 			Height:      height,
 			OriginalUrl: p.CdnUrl,
-			Key:         source.Key(p.CdnUrl),
+			UID:         source.UniqueID(p.CdnUrl),
 		}
 		images = append(images, image)
-		imageSizeMap[image.Key] = [2]int{image.Width, image.Height}
+		imageSizeMap[image.UID] = [2]int{image.Width, image.Height}
 	}
 
 	return images, imageSizeMap, nil
@@ -105,14 +105,14 @@ func ExtractImagesV2(body []byte) ([]*schema.Image, map[uint64][2]int, error) {
 		imageSizeMap = make(map[uint64][2]int, len(cdnUrls))
 		for i := 0; i < len(cdnUrls); i++ {
 			image := &schema.Image{
-				Source:      schema.Weixin,
-				Key:         source.Key(cdnUrls[i]),
+				Source:      schema.SourceWeixin.Int(),
+				UID:         source.UniqueID(cdnUrls[i]),
 				OriginalUrl: cdnUrls[i],
 				Width:       widths[i],
 				Height:      heights[i],
 			}
 			images = append(images, image)
-			imageSizeMap[image.Key] = [2]int{image.Width, image.Height}
+			imageSizeMap[image.UID] = [2]int{image.Width, image.Height}
 		}
 	}
 

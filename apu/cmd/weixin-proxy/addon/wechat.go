@@ -9,7 +9,6 @@ import (
 	"apu/pkg/store/mysql/query"
 	"apu/pkg/util/cookiex"
 	"github.com/lqqyt2423/go-mitmproxy/proxy"
-	"gorm.io/gorm/clause"
 )
 
 // WechatAddon 微信代理插件。
@@ -36,11 +35,8 @@ func (a *WechatAddon) Response(f *proxy.Flow) {
 	if _, exists := cookieMap["appmsg_token"]; exists {
 		mysql.Init()
 		wxuin := cookieMap["wxuin"]
-		err := query.WexinRequest.
-			Clauses(clause.OnConflict{
-				UpdateAll: true,
-			}).
-			Create(&model.WexinRequest{
+		err := query.WeixinRequest.
+			Save(&model.WeixinRequest{
 				Type:   "wechat",
 				UserID: wxuin,
 				Cookie: cookie,

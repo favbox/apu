@@ -28,10 +28,11 @@ func newAuthor(db *gorm.DB, opts ...gen.DOOption) author {
 	tableName := _author.authorDo.TableName()
 	_author.ALL = field.NewAsterisk(tableName)
 	_author.ID = field.NewInt64(tableName, "id")
-	_author.Source = field.NewInt32(tableName, "source")
+	_author.Source = field.NewInt(tableName, "source")
+	_author.UID = field.NewInt64(tableName, "uid")
 	_author.Nickname = field.NewString(tableName, "nickname")
-	_author.Avatar = field.NewString(tableName, "avatar")
 	_author.CreateTime = field.NewTime(tableName, "create_time")
+	_author.UpdateTime = field.NewTime(tableName, "update_time")
 
 	_author.fillFieldMap()
 
@@ -43,10 +44,11 @@ type author struct {
 
 	ALL        field.Asterisk
 	ID         field.Int64
-	Source     field.Int32
+	Source     field.Int
+	UID        field.Int64
 	Nickname   field.String
-	Avatar     field.String
 	CreateTime field.Time
+	UpdateTime field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -64,10 +66,11 @@ func (a author) As(alias string) *author {
 func (a *author) updateTableName(table string) *author {
 	a.ALL = field.NewAsterisk(table)
 	a.ID = field.NewInt64(table, "id")
-	a.Source = field.NewInt32(table, "source")
+	a.Source = field.NewInt(table, "source")
+	a.UID = field.NewInt64(table, "uid")
 	a.Nickname = field.NewString(table, "nickname")
-	a.Avatar = field.NewString(table, "avatar")
 	a.CreateTime = field.NewTime(table, "create_time")
+	a.UpdateTime = field.NewTime(table, "update_time")
 
 	a.fillFieldMap()
 
@@ -84,12 +87,13 @@ func (a *author) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (a *author) fillFieldMap() {
-	a.fieldMap = make(map[string]field.Expr, 5)
+	a.fieldMap = make(map[string]field.Expr, 6)
 	a.fieldMap["id"] = a.ID
 	a.fieldMap["source"] = a.Source
+	a.fieldMap["uid"] = a.UID
 	a.fieldMap["nickname"] = a.Nickname
-	a.fieldMap["avatar"] = a.Avatar
 	a.fieldMap["create_time"] = a.CreateTime
+	a.fieldMap["update_time"] = a.UpdateTime
 }
 
 func (a author) clone(db *gorm.DB) author {

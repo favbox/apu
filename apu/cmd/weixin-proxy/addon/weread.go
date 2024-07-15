@@ -10,7 +10,6 @@ import (
 	"apu/pkg/store/mysql/model"
 	"apu/pkg/store/mysql/query"
 	"github.com/lqqyt2423/go-mitmproxy/proxy"
-	"gorm.io/gorm/clause"
 )
 
 // WereadAddon 微信读书代理插件。
@@ -58,11 +57,8 @@ func (a *WereadAddon) Response(f *proxy.Flow) {
 
 	if vid != "" {
 		mysql.Init()
-		err := query.WexinRequest.
-			Clauses(clause.OnConflict{
-				UpdateAll: true,
-			}).
-			Create(&model.WexinRequest{
+		err := query.WeixinRequest.
+			Save(&model.WeixinRequest{
 				Type:    "weread",
 				UserID:  vid,
 				Headers: string(headers),

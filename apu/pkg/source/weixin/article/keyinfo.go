@@ -7,16 +7,18 @@ import (
 	"net/url"
 	"strings"
 
+	"apu/pkg/schema"
 	"apu/pkg/source"
 )
 
+// KeyInfo 定义文章的关键信息。
 type KeyInfo struct {
 	Biz string
 	Mid string
 	Idx string
 	Sn  string
 
-	Key uint64
+	UID uint64
 	Url string
 }
 
@@ -51,8 +53,8 @@ func GetKeyInfo(canonicalURL string) (*KeyInfo, error) {
 		return nil, errors.New("图文三元组不可为空")
 	}
 
-	// 生成唯一键
-	keyInfo.Key = source.Key(fmt.Sprintf("%s:%s:%s", keyInfo.Biz, keyInfo.Mid, keyInfo.Idx))
+	// 生成唯一ID
+	keyInfo.UID = source.UniqueID(fmt.Sprintf("%d|%s:%s:%s", schema.SourceWeixin, keyInfo.Biz, keyInfo.Mid, keyInfo.Idx))
 
 	return keyInfo, nil
 }

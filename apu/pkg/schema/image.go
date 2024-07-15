@@ -1,8 +1,8 @@
 package schema
 
 type Image struct {
-	Source
-	Key uint64
+	Source int
+	UID    uint64
 
 	OriginalUrl string
 	Width       int

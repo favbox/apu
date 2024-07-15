@@ -12,7 +12,7 @@ import (
 
 func TestQuery(t *testing.T) {
 	mysql.Init()
-	count, err := query.WexinRequest.Count()
+	count, err := query.WeixinRequest.Count()
 	if err != nil {
 		t.Fatal(err)
 	}

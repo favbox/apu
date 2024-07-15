@@ -27,21 +27,20 @@ func newNote(db *gorm.DB, opts ...gen.DOOption) note {
 
 	tableName := _note.noteDo.TableName()
 	_note.ALL = field.NewAsterisk(tableName)
-	_note.ID = field.NewInt64(tableName, "id")
-	_note.UID = field.NewUint64(tableName, "uid")
-	_note.Source = field.NewInt32(tableName, "source")
-	_note.State = field.NewInt32(tableName, "state")
+	_note.ID = field.NewUint64(tableName, "id")
+	_note.Source = field.NewInt(tableName, "source")
+	_note.AuthorID = field.NewInt64(tableName, "author_id")
+	_note.State = field.NewInt(tableName, "state")
 	_note.Type = field.NewString(tableName, "type")
 	_note.PublishTime = field.NewTime(tableName, "publish_time")
 	_note.Title = field.NewString(tableName, "title")
-	_note.ReadCount = field.NewInt32(tableName, "read_count")
-	_note.LikedCount = field.NewInt32(tableName, "liked_count")
-	_note.CollectedCount = field.NewInt32(tableName, "collected_count")
-	_note.CommentCount = field.NewInt32(tableName, "comment_count")
-	_note.ShareCount = field.NewInt32(tableName, "share_count")
-	_note.Content = field.NewString(tableName, "content")
-	_note.AuthorID = field.NewInt64(tableName, "author_id")
+	_note.Description = field.NewString(tableName, "description")
 	_note.OriginalURL = field.NewString(tableName, "original_url")
+	_note.ReadCount = field.NewInt(tableName, "read_count")
+	_note.LikedCount = field.NewInt(tableName, "liked_count")
+	_note.CollectedCount = field.NewInt(tableName, "collected_count")
+	_note.CommentCount = field.NewInt(tableName, "comment_count")
+	_note.ShareCount = field.NewInt(tableName, "share_count")
 	_note.CreateTime = field.NewTime(tableName, "create_time")
 	_note.UpdateTime = field.NewTime(tableName, "update_time")
 
@@ -54,21 +53,20 @@ type note struct {
 	noteDo
 
 	ALL            field.Asterisk
-	ID             field.Int64
-	UID            field.Uint64
-	Source         field.Int32
-	State          field.Int32
+	ID             field.Uint64
+	Source         field.Int
+	AuthorID       field.Int64
+	State          field.Int
 	Type           field.String
 	PublishTime    field.Time
 	Title          field.String
-	ReadCount      field.Int32
-	LikedCount     field.Int32
-	CollectedCount field.Int32
-	CommentCount   field.Int32
-	ShareCount     field.Int32
-	Content        field.String
-	AuthorID       field.Int64
+	Description    field.String // 由AI生成，如豆包
 	OriginalURL    field.String
+	ReadCount      field.Int
+	LikedCount     field.Int
+	CollectedCount field.Int
+	CommentCount   field.Int
+	ShareCount     field.Int
 	CreateTime     field.Time
 	UpdateTime     field.Time
 
@@ -87,21 +85,20 @@ func (n note) As(alias string) *note {
 
 func (n *note) updateTableName(table string) *note {
 	n.ALL = field.NewAsterisk(table)
-	n.ID = field.NewInt64(table, "id")
-	n.UID = field.NewUint64(table, "uid")
-	n.Source = field.NewInt32(table, "source")
-	n.State = field.NewInt32(table, "state")
+	n.ID = field.NewUint64(table, "id")
+	n.Source = field.NewInt(table, "source")
+	n.AuthorID = field.NewInt64(table, "author_id")
+	n.State = field.NewInt(table, "state")
 	n.Type = field.NewString(table, "type")
 	n.PublishTime = field.NewTime(table, "publish_time")
 	n.Title = field.NewString(table, "title")
-	n.ReadCount = field.NewInt32(table, "read_count")
-	n.LikedCount = field.NewInt32(table, "liked_count")
-	n.CollectedCount = field.NewInt32(table, "collected_count")
-	n.CommentCount = field.NewInt32(table, "comment_count")
-	n.ShareCount = field.NewInt32(table, "share_count")
-	n.Content = field.NewString(table, "content")
-	n.AuthorID = field.NewInt64(table, "author_id")
+	n.Description = field.NewString(table, "description")
 	n.OriginalURL = field.NewString(table, "original_url")
+	n.ReadCount = field.NewInt(table, "read_count")
+	n.LikedCount = field.NewInt(table, "liked_count")
+	n.CollectedCount = field.NewInt(table, "collected_count")
+	n.CommentCount = field.NewInt(table, "comment_count")
+	n.ShareCount = field.NewInt(table, "share_count")
 	n.CreateTime = field.NewTime(table, "create_time")
 	n.UpdateTime = field.NewTime(table, "update_time")
 
@@ -120,22 +117,21 @@ func (n *note) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (n *note) fillFieldMap() {
-	n.fieldMap = make(map[string]field.Expr, 17)
+	n.fieldMap = make(map[string]field.Expr, 16)
 	n.fieldMap["id"] = n.ID
-	n.fieldMap["uid"] = n.UID
 	n.fieldMap["source"] = n.Source
+	n.fieldMap["author_id"] = n.AuthorID
 	n.fieldMap["state"] = n.State
 	n.fieldMap["type"] = n.Type
 	n.fieldMap["publish_time"] = n.PublishTime
 	n.fieldMap["title"] = n.Title
+	n.fieldMap["description"] = n.Description
+	n.fieldMap["original_url"] = n.OriginalURL
 	n.fieldMap["read_count"] = n.ReadCount
 	n.fieldMap["liked_count"] = n.LikedCount
 	n.fieldMap["collected_count"] = n.CollectedCount
 	n.fieldMap["comment_count"] = n.CommentCount
 	n.fieldMap["share_count"] = n.ShareCount
-	n.fieldMap["content"] = n.Content
-	n.fieldMap["author_id"] = n.AuthorID
-	n.fieldMap["original_url"] = n.OriginalURL
 	n.fieldMap["create_time"] = n.CreateTime
 	n.fieldMap["update_time"] = n.UpdateTime
 }

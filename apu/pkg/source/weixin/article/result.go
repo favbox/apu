@@ -34,31 +34,31 @@ type (
 // 文章统计
 type (
 	Stat struct {
-		CollectNum      int32 `json:"collect_num"`
-		FriendLikeNum   int   `json:"friend_like_num"`
-		IsLogin         bool  `json:"is_login"`
-		LikeDisabled    bool  `json:"like_disabled"`
-		LikeNum         int32 `json:"like_num"`
-		Liked           bool  `json:"liked"`
-		OldLikeNum      int32 `json:"old_like_num"`
-		OldLiked        bool  `json:"old_liked"`
-		OldLikedBefore  int   `json:"old_liked_before"`
-		Prompted        int   `json:"prompted"`
-		ReadNum         int32 `json:"read_num"`
-		RealReadNum     int   `json:"real_read_num"`
-		Ret             int   `json:"ret"`
-		ShareNum        int32 `json:"share_num"`
-		Show            bool  `json:"show"`
-		ShowGray        int   `json:"show_gray"`
-		ShowLike        int   `json:"show_like"`
-		ShowLikeGray    int   `json:"show_like_gray"`
-		ShowOldLike     int   `json:"show_old_like"`
-		ShowOldLikeGray int   `json:"show_old_like_gray"`
-		ShowRead        int   `json:"show_read"`
-		Style           int   `json:"style"`
-		Version         int   `json:"version"`
-		VideoPv         int   `json:"video_pv"`
-		VideoUv         int   `json:"video_uv"`
+		CollectNum      int  `json:"collect_num"`
+		FriendLikeNum   int  `json:"friend_like_num"`
+		IsLogin         bool `json:"is_login"`
+		LikeDisabled    bool `json:"like_disabled"`
+		LikeNum         int  `json:"like_num"`
+		Liked           bool `json:"liked"`
+		OldLikeNum      int  `json:"old_like_num"`
+		OldLiked        bool `json:"old_liked"`
+		OldLikedBefore  int  `json:"old_liked_before"`
+		Prompted        int  `json:"prompted"`
+		ReadNum         int  `json:"read_num"`
+		RealReadNum     int  `json:"real_read_num"`
+		Ret             int  `json:"ret"`
+		ShareNum        int  `json:"share_num"`
+		Show            bool `json:"show"`
+		ShowGray        int  `json:"show_gray"`
+		ShowLike        int  `json:"show_like"`
+		ShowLikeGray    int  `json:"show_like_gray"`
+		ShowOldLike     int  `json:"show_old_like"`
+		ShowOldLikeGray int  `json:"show_old_like_gray"`
+		ShowRead        int  `json:"show_read"`
+		Style           int  `json:"style"`
+		Version         int  `json:"version"`
+		VideoPv         int  `json:"video_pv"`
+		VideoUv         int  `json:"video_uv"`
 	}
 
 	StatResult struct {

@@ -29,12 +29,13 @@ func newImage(db *gorm.DB, opts ...gen.DOOption) image {
 	_image.ALL = field.NewAsterisk(tableName)
 	_image.ID = field.NewInt64(tableName, "id")
 	_image.UID = field.NewUint64(tableName, "uid")
-	_image.NoteID = field.NewInt64(tableName, "note_id")
+	_image.NoteID = field.NewUint64(tableName, "note_id")
 	_image.OriginalURL = field.NewString(tableName, "original_url")
-	_image.Width = field.NewInt32(tableName, "width")
-	_image.Height = field.NewInt32(tableName, "height")
-	_image.Sort = field.NewInt32(tableName, "sort")
+	_image.Width = field.NewInt(tableName, "width")
+	_image.Height = field.NewInt(tableName, "height")
+	_image.Sort = field.NewInt(tableName, "sort")
 	_image.CreateTime = field.NewTime(tableName, "create_time")
+	_image.UpdateTime = field.NewTime(tableName, "update_time")
 
 	_image.fillFieldMap()
 
@@ -47,12 +48,13 @@ type image struct {
 	ALL         field.Asterisk
 	ID          field.Int64
 	UID         field.Uint64
-	NoteID      field.Int64
+	NoteID      field.Uint64
 	OriginalURL field.String
-	Width       field.Int32
-	Height      field.Int32
-	Sort        field.Int32
+	Width       field.Int
+	Height      field.Int
+	Sort        field.Int
 	CreateTime  field.Time
+	UpdateTime  field.Time
 
 	fieldMap map[string]field.Expr
 }
@@ -71,12 +73,13 @@ func (i *image) updateTableName(table string) *image {
 	i.ALL = field.NewAsterisk(table)
 	i.ID = field.NewInt64(table, "id")
 	i.UID = field.NewUint64(table, "uid")
-	i.NoteID = field.NewInt64(table, "note_id")
+	i.NoteID = field.NewUint64(table, "note_id")
 	i.OriginalURL = field.NewString(table, "original_url")
-	i.Width = field.NewInt32(table, "width")
-	i.Height = field.NewInt32(table, "height")
-	i.Sort = field.NewInt32(table, "sort")
+	i.Width = field.NewInt(table, "width")
+	i.Height = field.NewInt(table, "height")
+	i.Sort = field.NewInt(table, "sort")
 	i.CreateTime = field.NewTime(table, "create_time")
+	i.UpdateTime = field.NewTime(table, "update_time")
 
 	i.fillFieldMap()
 
@@ -93,7 +96,7 @@ func (i *image) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (i *image) fillFieldMap() {
-	i.fieldMap = make(map[string]field.Expr, 8)
+	i.fieldMap = make(map[string]field.Expr, 9)
 	i.fieldMap["id"] = i.ID
 	i.fieldMap["uid"] = i.UID
 	i.fieldMap["note_id"] = i.NoteID
@@ -102,6 +105,7 @@ func (i *image) fillFieldMap() {
 	i.fieldMap["height"] = i.Height
 	i.fieldMap["sort"] = i.Sort
 	i.fieldMap["create_time"] = i.CreateTime
+	i.fieldMap["update_time"] = i.UpdateTime
 }
 
 func (i image) clone(db *gorm.DB) image {

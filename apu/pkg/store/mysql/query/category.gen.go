@@ -30,7 +30,7 @@ func newCategory(db *gorm.DB, opts ...gen.DOOption) category {
 	_category.ID = field.NewInt64(tableName, "id")
 	_category.ParentID = field.NewInt64(tableName, "parent_id")
 	_category.Name = field.NewString(tableName, "name")
-	_category.Sort = field.NewInt32(tableName, "sort")
+	_category.Sort = field.NewInt(tableName, "sort")
 	_category.CreateTime = field.NewTime(tableName, "create_time")
 
 	_category.fillFieldMap()
@@ -45,7 +45,7 @@ type category struct {
 	ID         field.Int64
 	ParentID   field.Int64
 	Name       field.String
-	Sort       field.Int32
+	Sort       field.Int
 	CreateTime field.Time
 
 	fieldMap map[string]field.Expr
@@ -66,7 +66,7 @@ func (c *category) updateTableName(table string) *category {
 	c.ID = field.NewInt64(table, "id")
 	c.ParentID = field.NewInt64(table, "parent_id")
 	c.Name = field.NewString(table, "name")
-	c.Sort = field.NewInt32(table, "sort")
+	c.Sort = field.NewInt(table, "sort")
 	c.CreateTime = field.NewTime(table, "create_time")
 
 	c.fillFieldMap()

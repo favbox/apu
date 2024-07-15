@@ -21,7 +21,7 @@ func Init() {
 		DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
 			SkipDefaultTransaction: true,
 			PrepareStmt:            true,
-			Logger:                 logger.Default.LogMode(logger.Warn),
+			Logger:                 logger.Default.LogMode(logger.Info),
 		})
 		if err != nil {
 			panic(err)

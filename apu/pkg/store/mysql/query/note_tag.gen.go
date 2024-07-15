@@ -30,7 +30,7 @@ func newNoteTag(db *gorm.DB, opts ...gen.DOOption) noteTag {
 	_noteTag.ID = field.NewInt64(tableName, "id")
 	_noteTag.NoteID = field.NewInt64(tableName, "note_id")
 	_noteTag.TagID = field.NewInt64(tableName, "tag_id")
-	_noteTag.Sort = field.NewInt32(tableName, "sort")
+	_noteTag.Sort = field.NewInt(tableName, "sort")
 
 	_noteTag.fillFieldMap()
 
@@ -44,7 +44,7 @@ type noteTag struct {
 	ID     field.Int64
 	NoteID field.Int64
 	TagID  field.Int64
-	Sort   field.Int32
+	Sort   field.Int
 
 	fieldMap map[string]field.Expr
 }
@@ -64,7 +64,7 @@ func (n *noteTag) updateTableName(table string) *noteTag {
 	n.ID = field.NewInt64(table, "id")
 	n.NoteID = field.NewInt64(table, "note_id")
 	n.TagID = field.NewInt64(table, "tag_id")
-	n.Sort = field.NewInt32(table, "sort")
+	n.Sort = field.NewInt(table, "sort")
 
 	n.fillFieldMap()
 

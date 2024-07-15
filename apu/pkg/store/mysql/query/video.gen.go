@@ -31,8 +31,8 @@ func newVideo(db *gorm.DB, opts ...gen.DOOption) video {
 	_video.UID = field.NewUint64(tableName, "uid")
 	_video.NoteID = field.NewInt64(tableName, "note_id")
 	_video.OriginalURL = field.NewString(tableName, "original_url")
-	_video.Width = field.NewInt32(tableName, "width")
-	_video.Height = field.NewInt32(tableName, "height")
+	_video.Width = field.NewInt(tableName, "width")
+	_video.Height = field.NewInt(tableName, "height")
 	_video.CreateTime = field.NewTime(tableName, "create_time")
 
 	_video.fillFieldMap()
@@ -48,8 +48,8 @@ type video struct {
 	UID         field.Uint64 // xxhash3
 	NoteID      field.Int64
 	OriginalURL field.String
-	Width       field.Int32
-	Height      field.Int32
+	Width       field.Int
+	Height      field.Int
 	CreateTime  field.Time
 
 	fieldMap map[string]field.Expr
@@ -71,8 +71,8 @@ func (v *video) updateTableName(table string) *video {
 	v.UID = field.NewUint64(table, "uid")
 	v.NoteID = field.NewInt64(table, "note_id")
 	v.OriginalURL = field.NewString(table, "original_url")
-	v.Width = field.NewInt32(table, "width")
-	v.Height = field.NewInt32(table, "height")
+	v.Width = field.NewInt(table, "width")
+	v.Height = field.NewInt(table, "height")
 	v.CreateTime = field.NewTime(table, "create_time")
 
 	v.fillFieldMap()

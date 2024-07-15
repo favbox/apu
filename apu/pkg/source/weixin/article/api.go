@@ -33,12 +33,12 @@ func GetArticles(bookId string, count, offset, syncKey int) ([]*schema.Document,
 	limiterBySecond1.Take()
 
 	// 获取微信读书请求头
-	wexinRequest, err := mysql.FetchWexinRequest("weread", "valid")
+	weixinRequest, err := mysql.FetchWeixinRequest("weread", "valid")
 	if err != nil {
 		return nil, 0, err
 	}
 	var headers map[string]string
-	err = json.Unmarshal([]byte(wexinRequest.Headers), &headers)
+	err = json.Unmarshal([]byte(weixinRequest.Headers), &headers)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -83,9 +83,9 @@ func GetArticles(bookId string, count, offset, syncKey int) ([]*schema.Document,
 			return nil, 0, err
 		}
 		articles = append(articles, &schema.Document{
-			Source:      schema.Weixin,
-			Key:         keyInfo.Key,
-			Author:      a.MpName,
+			Source:      schema.SourceWeixin,
+			UID:         keyInfo.UID,
+			Metadata:    map[string]any{"mpName": a.MpName, "avatar": a.Avatar, "cover": a.PicUrl},
 			PublishTime: time.Unix(a.Time, 0),
 			OriginalUrl: a.DocUrl,
 			Title:       a.Title,
@@ -112,7 +112,7 @@ func GetStat(biz, mid, idx, sn string) (*Stat, error) {
 	limiterBySecond3.Take()
 
 	// 获取微信阅读量请求 cookie
-	wexinRequest, err := mysql.FetchWexinRequest("wechat", "valid")
+	weixinRequest, err := mysql.FetchWeixinRequest("wechat", "valid")
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func GetStat(biz, mid, idx, sn string) (*Stat, error) {
 	request := req.R()
 
 	// 设置查询参数
-	cookieMap := cookiex.StrToMap(wexinRequest.Cookie)
+	cookieMap := cookiex.StrToMap(weixinRequest.Cookie)
 	request.SetQueryParams(map[string]string{
 		"appmsg_token": cookieMap["appmsg_token"],
 		"x5":           "0",
@@ -129,7 +129,7 @@ func GetStat(biz, mid, idx, sn string) (*Stat, error) {
 	// 设置请求头
 	request.SetHeaders(map[string]string{
 		"User-Agent":   "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0Chrome/57.0.2987.132 MQQBrowser/6.2 Mobile",
-		"Cookie":       wexinRequest.Cookie,
+		"Cookie":       weixinRequest.Cookie,
 		"Origin":       "https://mp.weixin.qq.com",
 		"Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
 		"Host":         "mp.weixin.qq.com",
@@ -222,17 +222,28 @@ func GetArticle(rawURL string) (*schema.Document, error) {
 		return nil, err
 	}
 
+	// 提取公众号名称
+	mpName := stringx.Trim(gq.Find("#js_name").Text())
+	if mpName == "" {
+		if first := gq.Find(".wx_follow_nickname").First(); first != nil {
+			mpName = stringx.Trim(first.Text())
+		}
+	}
+	if len(mpName) == 0 {
+		return nil, errors.New("无法获取公众号的名称")
+	}
+
 	// 提取描述文本
 	description := gq.Find("meta[property='og:description']").AttrOr("content", "")
-	description = strings.ReplaceAll(description, `\x0d`, "")       // \r
-	description = strings.ReplaceAll(description, `\x0a`, "<br>")   // \n
-	description = strings.ReplaceAll(description, `\x20`, "&nbsp;") // 空格
+	description = strings.ReplaceAll(description, `\x0d`, "")   // \r
+	description = strings.ReplaceAll(description, `\x0a`, "\n") // \n
+	description = strings.ReplaceAll(description, `\x20`, " ")  // 空格
 
 	// 构建初始文档
 	article := &schema.Document{
-		Source:      schema.Weixin,
-		Key:         keyInfo.Key,
-		Author:      keyInfo.Biz,
+		Source:      schema.SourceWeixin,
+		UID:         keyInfo.UID,
+		Metadata:    map[string]any{"biz": keyInfo.Biz, "mpName": mpName},
 		OriginalUrl: keyInfo.Url,
 		Content:     description,
 	}
@@ -243,7 +254,6 @@ func GetArticle(rawURL string) (*schema.Document, error) {
 	}
 
 	// 提取标题
-	mpName := stringx.Trim(gq.Find("#js_name").Text())
 	article.Title = extractor.ExtractTitle(
 		mpName,
 		gq.Find("meta[property='og:title']").AttrOr("content", ""),
@@ -315,7 +325,7 @@ func GetArticle(rawURL string) (*schema.Document, error) {
 				}
 
 				// 删除小图
-				imgKey := source.Key(imgSrc)
+				imgKey := source.UniqueID(imgSrc)
 				imgSize := imageSizeMap[imgKey]
 				if isSmallImage(s, imgSize) {
 					s.Remove()
@@ -378,12 +388,14 @@ func GetArticle(rawURL string) (*schema.Document, error) {
 				if !stringx.HasChinese(text) {
 					return
 				}
-				texts = append(texts, s.Text()+"<br><br>")
+				texts = append(texts, s.Text())
 			}
 			if s.Is("img") {
 				imgSrc := s.AttrOr("src", "")
 				if len(imgSrc) > 0 {
 					keepedImageSrcs = append(keepedImageSrcs, imgSrc)
+					//texts = append(texts, "[图片]\n")
+					texts = append(texts, "\n")
 				}
 			}
 		})
@@ -394,7 +406,7 @@ func GetArticle(rawURL string) (*schema.Document, error) {
 			}
 		}
 
-		article.Content = strings.Join(texts, "\n")
+		article.Content = stringx.ReduceEmptyLines(strings.Join(texts, "\n"))
 	}
 
 	// 保存测试文件

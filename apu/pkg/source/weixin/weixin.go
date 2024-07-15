@@ -7,7 +7,7 @@ import (
 
 // GetArticles 获取公众号下的文章列表。
 func GetArticles(biz string, count, offset, syncKey int) ([]*schema.Document, int, error) {
-	bookId := Biz2BookId(biz)
+	bookId := Biz2BookID(biz)
 	return article.GetArticles(bookId, count, offset, syncKey)
 }
 
@@ -26,8 +26,8 @@ func GetArticleStatByURL(canonicalURL string) (*article.Stat, error) {
 }
 
 // GetArticleByURL 获取文章信息。
-func GetArticleByURL(canonicalURL string) (*schema.Document, error) {
-	return article.GetArticle(canonicalURL)
+func GetArticleByURL(rawURL string) (*schema.Document, error) {
+	return article.GetArticle(rawURL)
 }
 
 // GetArticleKeyInfo 获取微信公众号文章的键信息。

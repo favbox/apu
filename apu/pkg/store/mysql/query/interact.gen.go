@@ -28,13 +28,13 @@ func newInteract(db *gorm.DB, opts ...gen.DOOption) interact {
 	tableName := _interact.interactDo.TableName()
 	_interact.ALL = field.NewAsterisk(tableName)
 	_interact.ID = field.NewInt64(tableName, "id")
-	_interact.NoteID = field.NewInt64(tableName, "note_id")
-	_interact.Day = field.NewInt32(tableName, "day")
-	_interact.ReadCount = field.NewInt32(tableName, "read_count")
-	_interact.LikedCount = field.NewInt32(tableName, "liked_count")
-	_interact.CollectedCount = field.NewInt32(tableName, "collected_count")
-	_interact.CommentCount = field.NewInt32(tableName, "comment_count")
-	_interact.ShareCount = field.NewInt32(tableName, "share_count")
+	_interact.NoteID = field.NewUint64(tableName, "note_id")
+	_interact.Day = field.NewInt(tableName, "day")
+	_interact.ReadCount = field.NewInt(tableName, "read_count")
+	_interact.LikedCount = field.NewInt(tableName, "liked_count")
+	_interact.CollectedCount = field.NewInt(tableName, "collected_count")
+	_interact.CommentCount = field.NewInt(tableName, "comment_count")
+	_interact.ShareCount = field.NewInt(tableName, "share_count")
 	_interact.CreateTime = field.NewTime(tableName, "create_time")
 
 	_interact.fillFieldMap()
@@ -47,13 +47,13 @@ type interact struct {
 
 	ALL            field.Asterisk
 	ID             field.Int64
-	NoteID         field.Int64
-	Day            field.Int32
-	ReadCount      field.Int32 // 阅读量
-	LikedCount     field.Int32 // 点赞量
-	CollectedCount field.Int32 // 收藏量
-	CommentCount   field.Int32 // 评论量
-	ShareCount     field.Int32 // 分享量
+	NoteID         field.Uint64
+	Day            field.Int
+	ReadCount      field.Int // 阅读量
+	LikedCount     field.Int // 点赞量
+	CollectedCount field.Int // 收藏量
+	CommentCount   field.Int // 评论量
+	ShareCount     field.Int // 分享量
 	CreateTime     field.Time
 
 	fieldMap map[string]field.Expr
@@ -72,13 +72,13 @@ func (i interact) As(alias string) *interact {
 func (i *interact) updateTableName(table string) *interact {
 	i.ALL = field.NewAsterisk(table)
 	i.ID = field.NewInt64(table, "id")
-	i.NoteID = field.NewInt64(table, "note_id")
-	i.Day = field.NewInt32(table, "day")
-	i.ReadCount = field.NewInt32(table, "read_count")
-	i.LikedCount = field.NewInt32(table, "liked_count")
-	i.CollectedCount = field.NewInt32(table, "collected_count")
-	i.CommentCount = field.NewInt32(table, "comment_count")
-	i.ShareCount = field.NewInt32(table, "share_count")
+	i.NoteID = field.NewUint64(table, "note_id")
+	i.Day = field.NewInt(table, "day")
+	i.ReadCount = field.NewInt(table, "read_count")
+	i.LikedCount = field.NewInt(table, "liked_count")
+	i.CollectedCount = field.NewInt(table, "collected_count")
+	i.CommentCount = field.NewInt(table, "comment_count")
+	i.ShareCount = field.NewInt(table, "share_count")
 	i.CreateTime = field.NewTime(table, "create_time")
 
 	i.fillFieldMap()

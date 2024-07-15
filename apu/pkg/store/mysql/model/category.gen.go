@@ -15,7 +15,7 @@ type Category struct {
 	ID         int64     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	ParentID   int64     `gorm:"column:parent_id;not null" json:"parent_id"`
 	Name       string    `gorm:"column:name;not null" json:"name"`
-	Sort       int32     `gorm:"column:sort;not null" json:"sort"`
+	Sort       int       `gorm:"column:sort;not null" json:"sort"`
 	CreateTime time.Time `gorm:"column:create_time;not null;default:CURRENT_TIMESTAMP" json:"create_time"`
 }
 

@@ -3,7 +3,12 @@ package schema
 type Source int
 
 var (
-	Weixin      Source = 1
-	Zhimo       Source = 2
-	Xiaohongshu Source = 3
+	SourceWeixin      Source = 1
+	SourceZhimo       Source = 2
+	SourceXiaohongshu Source = 3
+	SourceBehance     Source = 4
 )
+
+func (s Source) Int() int {
+	return int(s)
+}

@@ -16,8 +16,8 @@ type Video struct {
 	UID         uint64    `gorm:"column:uid;not null;comment:xxhash3" json:"uid"` // xxhash3
 	NoteID      int64     `gorm:"column:note_id;not null" json:"note_id"`
 	OriginalURL string    `gorm:"column:original_url;not null" json:"original_url"`
-	Width       int32     `gorm:"column:width;not null" json:"width"`
-	Height      int32     `gorm:"column:height;not null" json:"height"`
+	Width       int       `gorm:"column:width;not null" json:"width"`
+	Height      int       `gorm:"column:height;not null" json:"height"`
 	CreateTime  time.Time `gorm:"column:create_time;default:CURRENT_TIMESTAMP" json:"create_time"`
 }
 
