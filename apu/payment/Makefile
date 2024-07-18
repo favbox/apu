@@ -6,3 +6,4 @@ ent:
 .PHONY: wire
 wire:
 	cd ../cmd/payment/ && wire
+	cd ../cmd/api/ && wire

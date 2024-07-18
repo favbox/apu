@@ -28,6 +28,7 @@ func newNote(db *gorm.DB, opts ...gen.DOOption) note {
 	tableName := _note.noteDo.TableName()
 	_note.ALL = field.NewAsterisk(tableName)
 	_note.ID = field.NewUint64(tableName, "id")
+	_note.Slug = field.NewString(tableName, "slug")
 	_note.Source = field.NewInt(tableName, "source")
 	_note.AuthorID = field.NewInt64(tableName, "author_id")
 	_note.State = field.NewInt(tableName, "state")
@@ -54,6 +55,7 @@ type note struct {
 
 	ALL            field.Asterisk
 	ID             field.Uint64
+	Slug           field.String
 	Source         field.Int
 	AuthorID       field.Int64
 	State          field.Int
@@ -86,6 +88,7 @@ func (n note) As(alias string) *note {
 func (n *note) updateTableName(table string) *note {
 	n.ALL = field.NewAsterisk(table)
 	n.ID = field.NewUint64(table, "id")
+	n.Slug = field.NewString(table, "slug")
 	n.Source = field.NewInt(table, "source")
 	n.AuthorID = field.NewInt64(table, "author_id")
 	n.State = field.NewInt(table, "state")
@@ -117,8 +120,9 @@ func (n *note) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (n *note) fillFieldMap() {
-	n.fieldMap = make(map[string]field.Expr, 16)
+	n.fieldMap = make(map[string]field.Expr, 17)
 	n.fieldMap["id"] = n.ID
+	n.fieldMap["slug"] = n.Slug
 	n.fieldMap["source"] = n.Source
 	n.fieldMap["author_id"] = n.AuthorID
 	n.fieldMap["state"] = n.State

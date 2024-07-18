@@ -1,27 +1,32 @@
 package fiber
 
 import (
+	"context"
 	"net/http"
 
-	"apu/book"
+	payment2 "apu/kitex_gen/payment"
+	"apu/payment"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 )
 
-func Handlers(s book.UseCase) http.HandlerFunc {
+func Handlers(s payment.UseCase) http.HandlerFunc {
 	app := fiber.New()
 	app.Get("/health", healthHandler)
 	app.Get("/", getBooks(s))
 	return adaptor.FiberApp(app)
 }
 
-func getBooks(s book.UseCase) fiber.Handler {
+func getBooks(s payment.UseCase) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		books, err := s.GetAll()
+		req := &payment2.QueryOrderReq{
+			OutOrderNo: c.Query("out_order_no"),
+		}
+		orderResp, err := s.QueryOrder(context.Background(), req)
 		if err != nil {
 			return c.Status(http.StatusInternalServerError).SendString(err.Error())
 		}
-		return c.Status(http.StatusOK).JSON(books)
+		return c.Status(http.StatusOK).JSON(orderResp)
 	}
 }
 

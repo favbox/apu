@@ -17,7 +17,7 @@ func UpdatePipeline(noteID uint64, opts ...PipelineOptions) error {
 		opt = opts[0]
 	}
 
-	p, err := query.Pipeline.Where(query.Pipeline.NoteID.Eq(noteID)).FirstOrCreate()
+	p, err := query.NotePipeline.Where(query.NotePipeline.ID.Eq(noteID)).FirstOrCreate()
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func UpdatePipeline(noteID uint64, opts ...PipelineOptions) error {
 	}
 
 	if needSave {
-		err = query.Pipeline.Save(p)
+		err = query.NotePipeline.Save(p)
 		if err != nil {
 			return err
 		}

@@ -30,7 +30,7 @@ func newNoteCategory(db *gorm.DB, opts ...gen.DOOption) noteCategory {
 	_noteCategory.ID = field.NewInt64(tableName, "id")
 	_noteCategory.NoteID = field.NewInt64(tableName, "note_id")
 	_noteCategory.CategoryID = field.NewInt64(tableName, "category_id")
-	_noteCategory.Score = field.NewFloat32(tableName, "score")
+	_noteCategory.Score = field.NewFloat64(tableName, "score")
 	_noteCategory.CreateTime = field.NewTime(tableName, "create_time")
 	_noteCategory.UpdateTime = field.NewTime(tableName, "update_time")
 
@@ -46,7 +46,7 @@ type noteCategory struct {
 	ID         field.Int64
 	NoteID     field.Int64
 	CategoryID field.Int64
-	Score      field.Float32
+	Score      field.Float64
 	CreateTime field.Time
 	UpdateTime field.Time
 
@@ -68,7 +68,7 @@ func (n *noteCategory) updateTableName(table string) *noteCategory {
 	n.ID = field.NewInt64(table, "id")
 	n.NoteID = field.NewInt64(table, "note_id")
 	n.CategoryID = field.NewInt64(table, "category_id")
-	n.Score = field.NewFloat32(table, "score")
+	n.Score = field.NewFloat64(table, "score")
 	n.CreateTime = field.NewTime(table, "create_time")
 	n.UpdateTime = field.NewTime(table, "update_time")
 

@@ -12,7 +12,8 @@ const TableNameNote = "note"
 
 // Note mapped from table <note>
 type Note struct {
-	ID             uint64    `gorm:"column:id;not null" json:"id"`
+	ID             uint64    `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
+	Slug           string    `gorm:"column:slug;not null" json:"slug"`
 	Source         int       `gorm:"column:source;not null" json:"source"`
 	AuthorID       int64     `gorm:"column:author_id;not null" json:"author_id"`
 	State          int       `gorm:"column:state;not null" json:"state"`

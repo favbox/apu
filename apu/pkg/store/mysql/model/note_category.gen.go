@@ -15,7 +15,7 @@ type NoteCategory struct {
 	ID         int64     `gorm:"column:id;primaryKey;autoIncrement:true" json:"id"`
 	NoteID     int64     `gorm:"column:note_id;not null" json:"note_id"`
 	CategoryID int64     `gorm:"column:category_id;not null" json:"category_id"`
-	Score      float32   `gorm:"column:score;not null;default:0.00" json:"score"`
+	Score      float64   `gorm:"column:score;not null;default:0.00" json:"score"`
 	CreateTime time.Time `gorm:"column:create_time;not null;default:CURRENT_TIMESTAMP" json:"create_time"`
 	UpdateTime time.Time `gorm:"column:update_time;not null;default:CURRENT_TIMESTAMP" json:"update_time"`
 }

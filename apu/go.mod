@@ -18,6 +18,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/google/wire v0.6.0
 	github.com/imroc/req/v3 v3.43.7
+	github.com/jackc/pgx/v5 v5.5.5
 	github.com/lqqyt2423/go-mitmproxy v1.8.5
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/cobra v1.8.1
@@ -80,6 +81,8 @@ require (
 	github.com/henrylee2cn/goutil v0.0.0-20210127050712-89660552f6f8 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jhump/protoreflect v1.8.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect

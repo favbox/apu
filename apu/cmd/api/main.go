@@ -3,14 +3,14 @@ package main
 import (
 	"log"
 
-	"apu/book"
-	"apu/book/postgres"
 	"apu/internal/api"
 	"apu/internal/http/gin"
 )
 
 func main() {
-	s := book.NewService(postgres.New())
+	//s := book.NewService(postgres.New())
+	s := initHandler()
+
 	h := gin.Handlers(s)
 	//h := fiber.Handlers(s)
 	//hertz.Handlers(s)

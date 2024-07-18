@@ -13,18 +13,18 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var ProviderSet = wire.NewSet(NewEntClient, NewOrderRepository)
+var ProviderSet = wire.NewSet(NewEntClient, NewRepository)
 
-var _ payment.Repository = (*OrderRepository)(nil)
+var _ payment.Repository = (*Repository)(nil)
 
-// OrderRepository 定义MySQL实现的订单仓库。
-type OrderRepository struct {
+// Repository 定义MySQL实现的订单仓库。
+type Repository struct {
 	db *ent.Client
 }
 
 // GetByOutOrderNo 实现根据外部订单号获取订单。
-func (o *OrderRepository) GetByOutOrderNo(ctx context.Context, outOrderNo string) (*payment.Order, error) {
-	row, err := o.db.Order.Query().
+func (r *Repository) GetByOutOrderNo(ctx context.Context, outOrderNo string) (*payment.Order, error) {
+	row, err := r.db.Order.Query().
 		Where(Order.OutOrderNo(outOrderNo)).
 		First(ctx)
 	if err != nil {
@@ -53,8 +53,8 @@ func (o *OrderRepository) GetByOutOrderNo(ctx context.Context, outOrderNo string
 }
 
 // Create 实现订单的创建。
-func (o *OrderRepository) Create(ctx context.Context, order *payment.Order) error {
-	ret, err := o.db.Order.Create().
+func (r *Repository) Create(ctx context.Context, order *payment.Order) error {
+	ret, err := r.db.Order.Create().
 		SetMerchantID(order.MerchantID).
 		SetChannel(order.Channel).
 		SetPayWay(order.PayWay).
@@ -80,16 +80,8 @@ func (o *OrderRepository) Create(ctx context.Context, order *payment.Order) erro
 }
 
 // UpdateOrderStatus 实现订单状态的更新。
-func (o *OrderRepository) UpdateOrderStatus(ctx context.Context, outOrderNo string, orderStatus int8) error {
-	return o.db.Order.Update().Where(Order.OutOrderNo(outOrderNo)).SetOrderStatus(orderStatus).Exec(ctx)
-}
-
-// NewOrderRepository 创建一个新的订单仓库。
-// 这是 MySQL 具体实现。
-func NewOrderRepository(dbClient *ent.Client) payment.Repository {
-	return &OrderRepository{
-		db: dbClient,
-	}
+func (r *Repository) UpdateOrderStatus(ctx context.Context, outOrderNo string, orderStatus int8) error {
+	return r.db.Order.Update().Where(Order.OutOrderNo(outOrderNo)).SetOrderStatus(orderStatus).Exec(ctx)
 }
 
 // NewEntClient 使用默认配置创建一个 ent 客户端。
@@ -105,4 +97,12 @@ func NewEntClient() *ent.Client {
 		log.Fatalf("failed creating schema resources: %v", err)
 	}
 	return entClient
+}
+
+// NewRepository 创建一个新的订单仓库。
+// 这是 MySQL 具体实现。
+func NewRepository(dbClient *ent.Client) payment.Repository {
+	return &Repository{
+		db: dbClient,
+	}
 }

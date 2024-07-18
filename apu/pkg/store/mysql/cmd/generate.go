@@ -27,17 +27,18 @@ func main() {
 	g.ApplyBasic(
 		g.GenerateModel("author"),
 		g.GenerateModel("category"),
-		g.GenerateModel("image", gen.FieldType("note_id", "uint64"), gen.FieldType("uid", "uint64")),
-		g.GenerateModel("interact", gen.FieldType("note_id", "uint64")),
+		g.GenerateModel("note_image", gen.FieldType("note_id", "uint64"), gen.FieldType("uid", "uint64")),
+		g.GenerateModel("note_interact", gen.FieldType("note_id", "uint64")),
 		g.GenerateModel("note", gen.FieldType("id", "uint64")),
 		g.GenerateModel("note_category"),
 		g.GenerateModel("note_content", gen.FieldType("id", "uint64")),
 		g.GenerateModel("note_tag"),
-		g.GenerateModel("pipeline", gen.FieldType("id", "uint64")),
+		g.GenerateModel("note_pipeline", gen.FieldType("id", "uint64")),
 		g.GenerateModel("tag"),
-		g.GenerateModel("video", gen.FieldType("uid", "uint64")),
+		g.GenerateModel("note_video", gen.FieldType("uid", "uint64")),
 		g.GenerateModel("weixin_mp"),
 		g.GenerateModel("weixin_request"),
+		g.GenerateModel("original_url"),
 	)
 	g.Execute()
 }

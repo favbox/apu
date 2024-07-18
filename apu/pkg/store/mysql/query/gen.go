@@ -19,15 +19,16 @@ var (
 	Q             = new(Query)
 	Author        *author
 	Category      *category
-	Image         *image
-	Interact      *interact
 	Note          *note
 	NoteCategory  *noteCategory
 	NoteContent   *noteContent
+	NoteImage     *noteImage
+	NoteInteract  *noteInteract
+	NotePipeline  *notePipeline
 	NoteTag       *noteTag
-	Pipeline      *pipeline
+	NoteVideo     *noteVideo
+	OriginalURL   *originalURL
 	Tag           *tag
-	Video         *video
 	WeixinMp      *weixinMp
 	WeixinRequest *weixinRequest
 )
@@ -36,15 +37,16 @@ func SetDefault(db *gorm.DB, opts ...gen.DOOption) {
 	*Q = *Use(db, opts...)
 	Author = &Q.Author
 	Category = &Q.Category
-	Image = &Q.Image
-	Interact = &Q.Interact
 	Note = &Q.Note
 	NoteCategory = &Q.NoteCategory
 	NoteContent = &Q.NoteContent
+	NoteImage = &Q.NoteImage
+	NoteInteract = &Q.NoteInteract
+	NotePipeline = &Q.NotePipeline
 	NoteTag = &Q.NoteTag
-	Pipeline = &Q.Pipeline
+	NoteVideo = &Q.NoteVideo
+	OriginalURL = &Q.OriginalURL
 	Tag = &Q.Tag
-	Video = &Q.Video
 	WeixinMp = &Q.WeixinMp
 	WeixinRequest = &Q.WeixinRequest
 }
@@ -54,15 +56,16 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		db:            db,
 		Author:        newAuthor(db, opts...),
 		Category:      newCategory(db, opts...),
-		Image:         newImage(db, opts...),
-		Interact:      newInteract(db, opts...),
 		Note:          newNote(db, opts...),
 		NoteCategory:  newNoteCategory(db, opts...),
 		NoteContent:   newNoteContent(db, opts...),
+		NoteImage:     newNoteImage(db, opts...),
+		NoteInteract:  newNoteInteract(db, opts...),
+		NotePipeline:  newNotePipeline(db, opts...),
 		NoteTag:       newNoteTag(db, opts...),
-		Pipeline:      newPipeline(db, opts...),
+		NoteVideo:     newNoteVideo(db, opts...),
+		OriginalURL:   newOriginalURL(db, opts...),
 		Tag:           newTag(db, opts...),
-		Video:         newVideo(db, opts...),
 		WeixinMp:      newWeixinMp(db, opts...),
 		WeixinRequest: newWeixinRequest(db, opts...),
 	}
@@ -73,15 +76,16 @@ type Query struct {
 
 	Author        author
 	Category      category
-	Image         image
-	Interact      interact
 	Note          note
 	NoteCategory  noteCategory
 	NoteContent   noteContent
+	NoteImage     noteImage
+	NoteInteract  noteInteract
+	NotePipeline  notePipeline
 	NoteTag       noteTag
-	Pipeline      pipeline
+	NoteVideo     noteVideo
+	OriginalURL   originalURL
 	Tag           tag
-	Video         video
 	WeixinMp      weixinMp
 	WeixinRequest weixinRequest
 }
@@ -93,15 +97,16 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		db:            db,
 		Author:        q.Author.clone(db),
 		Category:      q.Category.clone(db),
-		Image:         q.Image.clone(db),
-		Interact:      q.Interact.clone(db),
 		Note:          q.Note.clone(db),
 		NoteCategory:  q.NoteCategory.clone(db),
 		NoteContent:   q.NoteContent.clone(db),
+		NoteImage:     q.NoteImage.clone(db),
+		NoteInteract:  q.NoteInteract.clone(db),
+		NotePipeline:  q.NotePipeline.clone(db),
 		NoteTag:       q.NoteTag.clone(db),
-		Pipeline:      q.Pipeline.clone(db),
+		NoteVideo:     q.NoteVideo.clone(db),
+		OriginalURL:   q.OriginalURL.clone(db),
 		Tag:           q.Tag.clone(db),
-		Video:         q.Video.clone(db),
 		WeixinMp:      q.WeixinMp.clone(db),
 		WeixinRequest: q.WeixinRequest.clone(db),
 	}
@@ -120,15 +125,16 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		db:            db,
 		Author:        q.Author.replaceDB(db),
 		Category:      q.Category.replaceDB(db),
-		Image:         q.Image.replaceDB(db),
-		Interact:      q.Interact.replaceDB(db),
 		Note:          q.Note.replaceDB(db),
 		NoteCategory:  q.NoteCategory.replaceDB(db),
 		NoteContent:   q.NoteContent.replaceDB(db),
+		NoteImage:     q.NoteImage.replaceDB(db),
+		NoteInteract:  q.NoteInteract.replaceDB(db),
+		NotePipeline:  q.NotePipeline.replaceDB(db),
 		NoteTag:       q.NoteTag.replaceDB(db),
-		Pipeline:      q.Pipeline.replaceDB(db),
+		NoteVideo:     q.NoteVideo.replaceDB(db),
+		OriginalURL:   q.OriginalURL.replaceDB(db),
 		Tag:           q.Tag.replaceDB(db),
-		Video:         q.Video.replaceDB(db),
 		WeixinMp:      q.WeixinMp.replaceDB(db),
 		WeixinRequest: q.WeixinRequest.replaceDB(db),
 	}
@@ -137,15 +143,16 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 type queryCtx struct {
 	Author        IAuthorDo
 	Category      ICategoryDo
-	Image         IImageDo
-	Interact      IInteractDo
 	Note          INoteDo
 	NoteCategory  INoteCategoryDo
 	NoteContent   INoteContentDo
+	NoteImage     INoteImageDo
+	NoteInteract  INoteInteractDo
+	NotePipeline  INotePipelineDo
 	NoteTag       INoteTagDo
-	Pipeline      IPipelineDo
+	NoteVideo     INoteVideoDo
+	OriginalURL   IOriginalURLDo
 	Tag           ITagDo
-	Video         IVideoDo
 	WeixinMp      IWeixinMpDo
 	WeixinRequest IWeixinRequestDo
 }
@@ -154,15 +161,16 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 	return &queryCtx{
 		Author:        q.Author.WithContext(ctx),
 		Category:      q.Category.WithContext(ctx),
-		Image:         q.Image.WithContext(ctx),
-		Interact:      q.Interact.WithContext(ctx),
 		Note:          q.Note.WithContext(ctx),
 		NoteCategory:  q.NoteCategory.WithContext(ctx),
 		NoteContent:   q.NoteContent.WithContext(ctx),
+		NoteImage:     q.NoteImage.WithContext(ctx),
+		NoteInteract:  q.NoteInteract.WithContext(ctx),
+		NotePipeline:  q.NotePipeline.WithContext(ctx),
 		NoteTag:       q.NoteTag.WithContext(ctx),
-		Pipeline:      q.Pipeline.WithContext(ctx),
+		NoteVideo:     q.NoteVideo.WithContext(ctx),
+		OriginalURL:   q.OriginalURL.WithContext(ctx),
 		Tag:           q.Tag.WithContext(ctx),
-		Video:         q.Video.WithContext(ctx),
 		WeixinMp:      q.WeixinMp.WithContext(ctx),
 		WeixinRequest: q.WeixinRequest.WithContext(ctx),
 	}

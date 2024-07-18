@@ -32,16 +32,16 @@ func CreateNotesOrSkip(notes []*model.Note) error {
 	}
 
 	// 初始化任务管道
-	var pipelines []*model.Pipeline
+	var pipelines []*model.NotePipeline
 	for _, n := range notes {
 		if n.ID == 0 {
 			log.Fatal().Err(errors.New("note id should not be zero"))
 		}
-		pipelines = append(pipelines, &model.Pipeline{
-			NoteID: n.ID,
+		pipelines = append(pipelines, &model.NotePipeline{
+			ID: n.ID,
 		})
 	}
-	if err = query.Pipeline.
+	if err = query.NotePipeline.
 		Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "id"}, {Name: "note_id"}},
 			DoUpdates: clause.Assignments(map[string]interface{}{"update_time": time.Now()}),

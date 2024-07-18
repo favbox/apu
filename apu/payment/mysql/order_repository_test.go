@@ -10,7 +10,7 @@ import (
 )
 
 func TestOrderRepository_Create(t *testing.T) {
-	r := NewOrderRepository(NewEntClient())
+	r := NewRepository(NewEntClient())
 	o := &payment.Order{
 		TotalAmount: 100,
 	}
@@ -20,6 +20,6 @@ func TestOrderRepository_Create(t *testing.T) {
 }
 
 func TestOrderRepository_GetByOutOrderNo(t *testing.T) {
-	r := NewOrderRepository(NewEntClient())
+	r := NewRepository(NewEntClient())
 	assert.NotNil(t, r)
 }
