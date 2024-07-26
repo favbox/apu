@@ -1,0 +1,19 @@
+version: 2
+sql:
+  - engine: postgresql
+    queries: "query.sql"
+    schema: "schema.sql"
+    gen:
+      go:
+        package: db
+        sql_package: "pgx/v5"
+        out: "../"
+        emit_json_tags: false
+        emit_prepared_queries: true
+        emit_interface: true
+        overrides:
+          - column: "images.extra_info"
+            go_type:
+              import: "apu/app/note/db/dto"
+              package: "dto"
+              type: "ExtraInfo"
